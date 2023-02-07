@@ -67,6 +67,7 @@ end
 
 function ctrl:from_hex(raw, index)
 	self._val = string.byte(raw, index)
+	return index + 1
 end
 
 function ctrl:__tostring()
