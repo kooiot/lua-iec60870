@@ -3,23 +3,13 @@ local class = require 'middleclass'
 local types = require 'iec60870.types'
 local parser = class('LUA_IEC60870_DATA_PARSER')
 
-local data_map = {
-	
-	uint8 = 'I1',
-	int16 = 'i2',
-	uint16 = 'I2',
-	int32 = 'i4',
-	uint32 = 'I4',
-	float = 'f',
-	double = 'd',
-}
-
-function parser:initialize(ascii)
-	self._ascii = ascii
+--- need global settings??
+function parser:initialize()
 end
 
-function parser:__call(fmt, data, index, raw_len)
-	assert(data and fmt, 'Data format')
+function parser:__call(raw, index)
+	assert(raw, 'Raw data content missing')
+	local index = index or 1
 	
 	if fmt == 'bit' then
 		return self:bit_bin(data, index)

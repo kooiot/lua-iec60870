@@ -1,6 +1,6 @@
 -- M_SP_NA_1
 local class = require 'middleclass'
-local types = require 'iec60870.frame.types'
+local types = require 'iec60870.types'
 
 local qoc = class('LUA_IEC60870_DATA_QOC')
 

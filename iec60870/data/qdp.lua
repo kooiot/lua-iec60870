@@ -1,6 +1,6 @@
 -- M_DP_NA_1
 local qv_base = require 'iec60870.data.qv_base'
-local types = require 'iec60870.frame.types'
+local types = require 'iec60870.types'
 
 local data = qv_base:subclass('LUA_IEC60870_DATA_QDP')
 

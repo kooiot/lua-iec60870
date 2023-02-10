@@ -1,6 +1,6 @@
 -- M_SP_NA_1
 local qv_base = require 'iec60870.data.qv_base'
-local types = require 'iec60870.frame.types'
+local types = require 'iec60870.types'
 
 local data = qv_base:subclass('LUA_IEC60870_DATA_SIQ')
 
@@ -26,7 +26,7 @@ function data:from_hex(raw, index)
 end
 
 function data:__to_string()
-	return  'SPI:'..types.spi_str_table[self:SPI()]..qv_base.__to_string(self)
+	return  'SPI:'.types.spi_str_table[self:SPI()]..qv_base.__to_string(self)
 end
 
 return data

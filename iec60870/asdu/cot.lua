@@ -1,5 +1,5 @@
 local class = require 'middleclass'
-local conf = require 'iec60870.frame.conf'
+local conf = require 'iec60870.conf'
 
 local cot = class('LUA_IEC60870_FRAME_COT')
 
@@ -71,7 +71,7 @@ end
 
 function cot:to_hex()
 	local cause = ((self._t & 0x1) << 7) + ((self._pn & 0x1) << 6) + (self._cause & 0x3F)
-	if conf.COT_SIZE == 1 then
+	if conf.ASDU_COT_SIZE == 1 then
 		return string.char(cause & 0xFF)
 	else
 		return string.char(cause & 0xFF)..string.char(self._addr & 0xFF)
@@ -79,7 +79,7 @@ function cot:to_hex()
 end
 
 function cot:from_hex(raw, index)
-	if conf.COT_SIZE == 1 then
+	if conf.ASDU_COT_SIZE == 1 then
 		local c = string.byte(raw, index)
 		self._cause = c & 0x3F
 		self._pn = (c >> 6) & 0x1
@@ -98,7 +98,7 @@ end
 
 function cot:__tostring()
 	local desc = self.TB_DESC[self._cause] or 'Unknown Cause'
-	if conf.COT_SIZE == 1 then
+	if conf.ASDU_COT_SIZE == 1 then
 		return 'Cause:'..desc
 	else
 		return 'Cause:'..desc..' Addr:'..self._addr

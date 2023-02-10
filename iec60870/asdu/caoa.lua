@@ -1,5 +1,5 @@
 local class = require 'middleclass'
-local conf = require 'IEC60870.frame.conf'
+local conf = require 'IEC60870.conf'
 
 local caoa = class('LUA_IEC60870_FRAME_CAOA')
 
@@ -12,7 +12,7 @@ function caoa:ADDR()
 end
 
 function caoa:to_hex()
-	if conf.CAOA_SIZE == 1 then
+	if conf.ASDU_CAOA_SIZE == 1 then
 		return string.char(self._addr & 0xFF)
 	else
 		return string.char(self._addr & 0xFF)..string.char((self._addr >> 8) & 0xFF)
@@ -20,7 +20,7 @@ function caoa:to_hex()
 end
 
 function caoa:from_hex(raw, index)
-	if conf.CAOA_SIZE == 1 then
+	if conf.ASDU_CAOA_SIZE == 1 then
 		self._addr = string.byte(raw, index)
 		return index + 1
 	else

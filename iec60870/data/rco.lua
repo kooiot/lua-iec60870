@@ -1,6 +1,6 @@
 -- M_SP_NA_1
 local qoc = require 'iec60870.frame.qoc'
-local types = require 'iec60870.frame.types'
+local types = require 'iec60870.types'
 
 local data = qoc:subclass('LUA_IEC60870_DATA_RCO')
 

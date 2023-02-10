@@ -1,5 +1,5 @@
 local class = require 'middleclass'
-local conf = require 'iec60870.frame.conf'
+local conf = require 'iec60870.conf'
 
 local addr = class('LUA_IEC60870_FRAME_ADDR')
 
