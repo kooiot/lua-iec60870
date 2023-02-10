@@ -1,9 +1,10 @@
 local class = require 'middleclass'
 
-local parser = class('LUA_ICE60870_DATA_PARSER')
+local types = require 'iec60870.types'
+local parser = class('LUA_IEC60870_DATA_PARSER')
 
-local data_fmts = {
-	int8 = 'i1',
+local data_map = {
+	
 	uint8 = 'I1',
 	int16 = 'i2',
 	uint16 = 'I2',

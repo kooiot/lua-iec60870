@@ -2,7 +2,7 @@
 local class = require 'middleclass'
 local types = require 'iec60870.frame.types'
 
-local qoc = class('LUA_ICE60870_DATA_QOC')
+local qoc = class('LUA_IEC60870_DATA_QOC')
 
 function qoc:initialize(qu, se)
 	self._qoc_val = ((qu & 0xF) << 3) + ((se & 0x1) << 7)

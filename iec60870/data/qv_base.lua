@@ -2,7 +2,7 @@
 local class = require 'middleclass'
 local types = require 'iec60870.frame.types'
 
-local qv_base = class('LUA_ICE60870_DATA_QV_BASE')
+local qv_base = class('LUA_IEC60870_DATA_QV_BASE')
 
 function qv_base:initialize(bl, sb, nt, iv)
 	self._qv_val = ((bl & 0x1) << 4) + ((sb & 0x1) << 5) + ((nt & 0x1) << 6) + ((iv & 0x1) << 7)

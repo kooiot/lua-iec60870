@@ -2,7 +2,7 @@
 local class = require 'middleclass'
 local types = require 'iec60870.frame.types'
 
-local data = class('LUA_ICE60870_DATA_CP56TIME2A')
+local data = class('LUA_IEC60870_DATA_CP56TIME2A')
 
 function data:initialize(ms)
 	self._ms = ms or 0

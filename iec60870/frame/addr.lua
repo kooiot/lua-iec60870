@@ -1,7 +1,7 @@
 local class = require 'middleclass'
 local conf = require 'iec60870.frame.conf'
 
-local addr = class('LUA_ICE60870_FRAME_ADDR')
+local addr = class('LUA_IEC60870_FRAME_ADDR')
 
 function addr:initialize(addr)
 	self._addr = assert(addr or 0)

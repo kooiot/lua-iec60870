@@ -2,7 +2,7 @@
 local qoc = require 'iec60870.frame.qoc'
 local types = require 'iec60870.frame.types'
 
-local data = qoc:subclass('LUA_ICE60870_DATA_DCO')
+local data = qoc:subclass('LUA_IEC60870_DATA_DCO')
 
 function data:initialize(dcs, bs, qu, se)
 	qoc.initialize(self, qu, se)

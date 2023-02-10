@@ -2,7 +2,7 @@
 local class = require 'middleclass'
 local types = require 'iec60870.frame.types'
 
-local data = class('LUA_ICE60870_DATA_QPM')
+local data = class('LUA_IEC60870_DATA_QPM')
 
 function data:initialize(kpa, lpc, pop)
 	self._val = (kpa & 0x3F) + ((lpc & 0x1) << 6) + ((pop & 0x1) << 7)

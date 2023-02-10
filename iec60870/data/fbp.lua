@@ -2,7 +2,7 @@
 local class = require 'middleclass'
 local types = require 'iec60870.frame.types'
 
-local data = class('LUA_ICE60870_DATA_FBP')
+local data = class('LUA_IEC60870_DATA_FBP')
 
 function data:initialize()
 	self._val = 0x55AA

@@ -2,7 +2,7 @@
 local class = require 'middleclass'
 local types = require 'iec60870.frame.types'
 
-local data = class('LUA_ICE60870_DATA_BSI')
+local data = class('LUA_IEC60870_DATA_BSI')
 
 function data:initialize(val)
 	self:set_val(val)

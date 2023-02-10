@@ -3,7 +3,7 @@ local class = require 'middleclass'
 local types = require 'iec60870.frame.types'
 local bsi = require 'iec60870.data.bsi'
 
-local data = class('LUA_ICE60870_DATA_SCD')
+local data = class('LUA_IEC60870_DATA_SCD')
 
 function data:initialize(st, cd)
 	self._st = bsi:new(st)

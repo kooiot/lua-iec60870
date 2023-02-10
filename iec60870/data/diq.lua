@@ -2,7 +2,7 @@
 local qv_base = require 'iec60870.data.qv_base'
 local types = require 'iec60870.frame.types'
 
-local data = qv_base:subclass('LUA_ICE60870_DATA_DIQ')
+local data = qv_base:subclass('LUA_IEC60870_DATA_DIQ')
 
 function data:initialize(dpi, bl, sb, nt, iv)
 	qv_base.initialize(self, bl, sb, nt, iv)

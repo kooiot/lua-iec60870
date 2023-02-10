@@ -2,7 +2,7 @@
 local class = require 'middleclass'
 local types = require 'iec60870.frame.types'
 
-local data = class('LUA_ICE60870_DATA_SOF')
+local data = class('LUA_IEC60870_DATA_SOF')
 
 function data:initialize(status, lfd, FOR, fa)
 	self._val = status & 0x1F + ((lfd & 0x1) << 5) + ((FOR & 0x1) << 6) + ((fa & 0x1) << 7) 
