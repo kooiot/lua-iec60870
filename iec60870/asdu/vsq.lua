@@ -1,6 +1,6 @@
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 
-local vsq = class('LUA_IEC60870_FRAME_VSQ')
+local vsq = base:subclass('LUA_IEC60870_FRAME_VSQ')
 
 vsq.static.SQ_OBJ_CONTINUE = 1
 vsq.static.SQ_OBJ_SLOT = 0
@@ -28,8 +28,12 @@ function vsq:from_hex(raw, index)
 	self._sq = (c >> 7) & 0x1
 end
 
-function vsq:__tostring()
-	return 'Count:'..self._count..' SQ:'..self._sq
+function vsq:__totable()
+	return {
+		name = 'Variable structure qualifier',
+		count = self._count,
+		sq = self._sq,
+	}
 end
 
 return vsq

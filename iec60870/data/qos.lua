@@ -1,5 +1,4 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
 local data = class('LUA_IEC60870_DATA_QOS')
@@ -25,11 +24,12 @@ function data:from_hex(raw, index)
 	return index + 1
 end
 
-function data:__to_string()
-	return table.concat({
-		'QL:', self:QL(),
-		'S/E:', self:SE(),
-	})
+function data:__totable()
+	return {
+		name = 'QOS',
+		ql = self:QL(),
+		se = self:SE(),
+	}
 end
 
 return data

@@ -1,5 +1,4 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
 local qoc = class('LUA_IEC60870_DATA_QOC')
@@ -24,11 +23,12 @@ function qoc:set_value(val)
 	self._qoc_val = val
 end
 
-function qoc:__to_string()
-	return table.concat({
-		'QU:', self:QU(),
-		'S/E:', self:SE(),
-	})
+function qoc:__totable()
+	return {
+		name = 'QOC',
+		qu = self:QU(),
+		se = self:SE(),
+	}
 end
 
 return qoc

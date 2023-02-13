@@ -1,8 +1,7 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local data = class('LUA_IEC60870_DATA_NOF')
+local data = base:subclass('LUA_IEC60870_DATA_NOF')
 
 function data:initialize(val)
 	self._val = val & 0xFFFFFF
@@ -21,10 +20,11 @@ function data:from_hex(raw, index)
 	 return index
 end
 
-function data:__to_string()
-	return table.concat({
-		'VAL:', self:VAL(),
-	})
+function data:__totable()
+	return {
+		name = 'NOF',
+		val = self:VAL(),
+	}
 end
 
 return data

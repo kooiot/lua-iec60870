@@ -1,4 +1,3 @@
--- M_DP_NA_1
 local qv_base = require 'iec60870.data.qv_base'
 local types = require 'iec60870.types'
 
@@ -25,8 +24,11 @@ function data:from_hex(raw, index)
 	 return index + 1
 end
 
-function data:__to_string()
-	return  'EI:'..self:EI()..qv_base.__to_string(self)
+function data:__totable()
+	local t = qv_base.__totable(self)
+	t.name = 'QDP'
+	t.ei = self:EI()
+	return t
 end
 
 return data

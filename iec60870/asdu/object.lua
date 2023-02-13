@@ -1,51 +1,48 @@
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
+local cp5time2a = require 'iec60870.data.cp5time2a'
+local helper = require 'iec60870.frame.helper'
+local conf = require 'iec60870.conf'
 
-local object = class('LUA_IEC60870_FRAME_OBJECT')
+local object = base:subclass('LUA_IEC60870_ASDU_OBJECT')
 
-object.static.DIR_R		= 0 -- 保留 (用于非平衡传输)
-object.static.DIR_M		= 0 -- 主站 (平衡传输)
-object.static.DIR_S		= 1 -- 终端 (平衡传输)
-object.static.PRM_REQ		= 1 -- 启动站
-object.static.PRM_RESP	= 0 -- 从动站
-
-object.static.FC_RST_LINK		= 0 -- 复位远方链路
-object.static.FC_RST_PROC		= 1 -- 复位用户进程
-object.static.FC_LINK_TEST	= 2 -- 发送/确认链路测试功能 --- 平衡链路
-object.static.FC_DATA			= 3 -- 发送/确认用户数据
-object.static.FC_DATA_NK		= 4 -- 发送/无回答用户数据
-object.static.FC_ACC			= 8 -- 访问请求 (响应链路状态) --- 非平衡链路
-object.static.FC_LINK			= 9 -- 请求/响应请求链路状态 (响应链路状态)
-object.static.FC_EM1_DATA		= 10 -- 请求/响应请求1级用户数据 --- 非平衡链路
-object.static.FC_EM2_DATA		= 11 -- 请求/响应请求2级用户数据 --- 非平衡链路
-
-function object:initialize(oi, data, tm)
-	self._oi = oi
-	self._data = data
-	self._tm = tm
+function object:initialize(addr, data, time)
+	self._addr = addr or 0
+	self._data = data or nil
+	self._time = time or cp5time2a:new()
 end
 
-function object:OI()
-	return self._oi
+function object:ADDR()
+	return self._addr
 end
 
 function object:DATA()
 	return self._data
 end
 
-function object:TM()
-	return self._tm
+function object:TIME()
+	return self._time
 end
 
 function object:to_hex()
-	return string.char(self._ti)..string.char(_vsq)..string.char(self._cot)..string.
+	return string.pack('<I'..conf.ADDR_LEN, self._addr)..self._data:to_hex()..self._time:to_hex()
 end
 
 function object:from_hex(raw, index)
-	self._val = string.byte(raw, index)
+	self._addr, index = string.unpack('<I'..conf.ADDR_LEN, raw, index)
+
+	index = self._data:from_hex(raw, index)
+
+	index = self._time:from_hex(raw, index)
+	return index
 end
 
-function object:__tostring()
-	return 'OI:'..self:OI()..' DATA:'..self:DATA()..' TM:'..self:Tm()
+function object:__totable()
+	return {
+		name = 'ASDU Object',
+		addr = self._addr,
+		data = helper.totable(self._data),
+		time = helper.totable(self._time),
+	}
 end
 
 return object

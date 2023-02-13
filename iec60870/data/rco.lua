@@ -25,8 +25,11 @@ function data:from_hex(raw, index)
 	 return index + 1
 end
 
-function data:__to_string()
-	return  'RCS:'..self:RCS()..qoc.__to_string(self)
+function data:__totable()
+	local t = qoc.__totable(self)
+	t.name = 'RCO'
+	t.rcs = self:RCS()
+	return t
 end
 
 return data

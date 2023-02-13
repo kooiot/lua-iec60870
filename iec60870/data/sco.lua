@@ -29,8 +29,12 @@ function data:from_hex(raw, index)
 	 return index + 1
 end
 
-function data:__to_string()
-	return  'SCS:'..self:SCS()..' BS:'..self:BS()..qoc.__to_string(self)
+function data:__totable()
+	local t = qoc.__totable(self)
+	t.name = 'SCO'
+	t.scs = self:SCS()
+	t.bs = self:BS()
+	return t
 end
 
 return data

@@ -1,9 +1,8 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 local bsi = require 'iec60870.data.bsi'
 
-local data = class('LUA_IEC60870_DATA_SCD')
+local data = base:subclass('LUA_IEC60870_DATA_SCD')
 
 function data:initialize(st, cd)
 	self._st = bsi:new(st)
@@ -28,11 +27,12 @@ function data:from_hex(raw, index)
 	return index
 end
 
-function data:__to_string()
-	return table.concat({
-		'ST:', tostring(self._st),
-		'CD:', tostring(self._cd),
-	})
+function data:__totable()
+	return {
+		name = 'SCD',
+		st = self._st:__totable(),
+		cd = self._cd:__totable(),
+	}
 end
 
 return data

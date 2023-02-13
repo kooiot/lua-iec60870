@@ -1,8 +1,7 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local data = class('LUA_IEC60870_DATA_SOF')
+local data = base:subclass('LUA_IEC60870_DATA_SOF')
 
 function data:initialize(status, lfd, FOR, fa)
 	self._val = status & 0x1F + ((lfd & 0x1) << 5) + ((FOR & 0x1) << 6) + ((fa & 0x1) << 7) 
@@ -34,13 +33,14 @@ function data:from_hex(raw, index)
 	 return index + 1
 end
 
-function data:__to_string()
-	return table.concat({
-		'STS:', self:STATUS(),
-		'LFD:', self:LFD(),
-		'FOR:', self:FOR(),
-		'FA:', self:FA(),
-	})
+function data:__totable()
+	return {
+		name = 'SOF',
+		status = self:STATUS(),
+		lfd = self:LFD(),
+		['for'] = self:FOR(),
+		fa = self:FA(),
+	}
 end
 
 return data

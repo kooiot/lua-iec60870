@@ -1,7 +1,7 @@
-local class = require 'middleclass'
+local base = require 'IEC60870.frame.base'
 local conf = require 'IEC60870.conf'
 
-local caoa = class('LUA_IEC60870_FRAME_CAOA')
+local caoa = base:subclass('LUA_IEC60870_FRAME_CAOA')
 
 function caoa:initialize(addr)
 	self._addr = addr
@@ -29,8 +29,11 @@ function caoa:from_hex(raw, index)
 	end
 end
 
-function caoa:__tostring()
-	return 'Addr:'..self._addr
+function caoa:__totable()
+	return {
+		name = 'Common address of ASDU',
+		addr = self._addr,
+	}
 end
 
 return caoa

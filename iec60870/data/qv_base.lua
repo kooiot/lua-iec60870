@@ -1,8 +1,7 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local qv_base = class('LUA_IEC60870_DATA_QV_BASE')
+local qv_base = base:subclass('LUA_IEC60870_DATA_QV_BASE')
 
 function qv_base:initialize(bl, sb, nt, iv)
 	self._qv_val = ((bl & 0x1) << 4) + ((sb & 0x1) << 5) + ((nt & 0x1) << 6) + ((iv & 0x1) << 7)
@@ -32,13 +31,13 @@ function qv_base:set_qv_value(val)
 	self._qv_val = val
 end
 
-function qv_base:__to_string()
-	return table.concat({
-		'BL:', self:BL(),
-		'SB:', self:SB(),
-		'NT:', self.NT(),
-		'IV:', types.valid_table[self:IV()],
-	})
+function qv_base:__totable()
+	return {
+		bl = self:BL(),
+		sb = self:SB(),
+		nt = self.NT(),
+		iv = types.valid_table[self:IV()],
+	}
 end
 
 return qv_base

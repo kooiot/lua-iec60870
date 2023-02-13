@@ -1,8 +1,7 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local data = class('LUA_IEC60870_DATA_FBP')
+local data = base:subclass('LUA_IEC60870_DATA_FBP')
 
 function data:initialize()
 	self._val = 0x55AA
@@ -17,8 +16,11 @@ function data:from_hex(raw, index)
 	return index
 end
 
-function data:__to_string()
-	return 'FBP: 0xAA55'
+function data:__totable()
+	return {
+		name = 'FBP',
+		fbp = '0xAA55'
+	}
 end
 
 return data

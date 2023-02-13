@@ -1,8 +1,7 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local data = class('LUA_IEC60870_DATA_BSI')
+local data = base:subclass('LUA_IEC60870_DATA_BSI')
 
 function data:initialize(val)
 	self:set_val(val)
@@ -48,19 +47,18 @@ function data:from_hex(raw, index)
 	return index
 end
 
-function data:__to_string()
-	local t = {'BSI:['}
+function data:__totable()
+	local t = {name = 'BSI'}
 	for i = 1, 32 do
 		local v = self._vals[i]
 		if v then
-			t[#t + 1] = v & 0x1
+			t['v_'..i] = v & 0x1
 		else
-			t[#t + 1] = 0
+			t['v_'..i] = 0
 		end
 	end
-	t[#t + 1] = ']'
 
-	return table.concat(t)
+	return t
 end
 
 return data

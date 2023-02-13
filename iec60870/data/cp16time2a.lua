@@ -1,8 +1,7 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local data = class('LUA_IEC60870_DATA_CP56TIME2A')
+local data = base:subclass('LUA_IEC60870_DATA_CP16TIME2A')
 
 function data:initialize(ms)
 	self._ms = ms or 0
@@ -18,14 +17,14 @@ end
 
 function data:from_hex(raw, index)
 	self._ms, index  = string.pack('<I2', raw, index)
-	return index + 7
+	return index
 end
 
-function data:__to_string()
-	return table.concat({
-		'SEC:', self._ms // 1000 
-		'MS:', self._ms % 1000,
-	})
+function data:__totable()
+	return {
+		name = 'CP16Time2a',
+		ms = self._ms,
+	}
 end
 
 return data

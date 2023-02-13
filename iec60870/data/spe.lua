@@ -1,8 +1,7 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local data = class('LUA_IEC60870_DATA_SPE')
+local data = base:subclass('LUA_IEC60870_DATA_SPE')
 
 function data:initialize(gs, sl1, sl2, sl3, sie, srd)
 	self._val = (gs & 0x1) + ((sl1 & 0x1) << 1) + ((sl2 & 0x1) << 2) + ((sl3 & 0x1) << 3) + ((sie & 0x1) << 4) + ((srd & 0x1) << 5)
@@ -41,15 +40,16 @@ function data:from_hex(raw, index)
 	 return index + 1
 end
 
-function data:__to_string()
-	return table.concat({
-		'GS:', self:GS(),
-		'SL1:', self:SL1(),
-		'SL2:', self:SL2(),
-		'SL3:', self:SL3(),
-		'SIE:', self:SIE(),
-		'SRD:', self:SRD(),
-	})
+function data:__totable()
+	return {
+		name = 'SPE',
+		gs = self:GS(),
+		sl1 = self:SL1(),
+		sl2 = self:SL2(),
+		sl3 =  self:SL3(),
+		sie = self:SIE(),
+		srd = self:SRD(),
+	}
 end
 
 return data

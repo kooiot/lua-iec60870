@@ -1,4 +1,3 @@
--- M_SP_NA_1
 local qoc = require 'iec60870.frame.qoc'
 local types = require 'iec60870.types'
 
@@ -25,8 +24,11 @@ function data:from_hex(raw, index)
 	 return index + 1
 end
 
-function data:__to_string()
-	return  'DCS:'..self:DCS()..qoc.__to_string(self)
+function data:__totable()
+	local t = qoc.__totable(self)
+	t.name = 'DCO'
+	t.dcs = self:DCS()
+	return t
 end
 
 return data

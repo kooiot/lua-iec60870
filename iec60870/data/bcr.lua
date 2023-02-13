@@ -1,8 +1,7 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local data = class('LUA_IEC60870_DATA_VTI')
+local data = base:subclass('LUA_IEC60870_DATA_BCR')
 
 function data:initialize(val, sq, cy, cv, iv)
 	self._val = val
@@ -43,11 +42,12 @@ function data:from_hex(raw, index)
 	 return index
 end
 
-function data:__to_string()
-	return table.concat({
-		'VAL:', self:VAL(),
-		'BCR:', self:BCR(),
-	})
+function data:__totable()
+	return {
+		name = 'BCR',
+		val = self:VAL(),
+		bcr = self:BCR(),
+	}
 end
 
 return data

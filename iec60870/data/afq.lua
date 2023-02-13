@@ -1,8 +1,7 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local data = class('LUA_IEC60870_DATA_AFQ')
+local data = base:subclass('LUA_IEC60870_DATA_AFQ')
 
 function data:initialize(l, h)
 	self._val = l & 0xF + ((h & 0xF) << 4) 
@@ -25,11 +24,12 @@ function data:from_hex(raw, index)
 	 return index + 1
 end
 
-function data:__to_string()
-	return table.concat({
-		'L:', self:L(),
-		'H:', self:H(),
-	})
+function data:__totable()
+	return {
+		name = 'AFQ',
+		l = self:L(),
+		h = self:H(),
+	}
 end
 
 return data

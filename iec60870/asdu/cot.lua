@@ -1,7 +1,7 @@
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local conf = require 'iec60870.conf'
 
-local cot = class('LUA_IEC60870_FRAME_COT')
+local cot = base:subclass('LUA_IEC60870_FRAME_COT')
 
 --Cause of transfer
 cot.static.TB_DESC = {
@@ -96,12 +96,19 @@ function cot:from_hex(raw, index)
 	end
 end
 
-function cot:__tostring()
+function cot:__totable()
 	local desc = self.TB_DESC[self._cause] or 'Unknown Cause'
 	if conf.ASDU_COT_SIZE == 1 then
-		return 'Cause:'..desc
+		return {
+			name = 'Cause of Transfer',
+			cause = desc,
+		}
 	else
-		return 'Cause:'..desc..' Addr:'..self._addr
+		return {
+			name = 'Cause of Transfer',
+			cause = desc,
+			addr = self._addr
+		}
 	end
 end
 

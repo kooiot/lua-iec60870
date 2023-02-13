@@ -1,8 +1,7 @@
--- M_SP_NA_1
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local data = class('LUA_IEC60870_DATA_OCI')
+local data = base:subclass('LUA_IEC60870_DATA_OCI')
 
 function data:initialize(gc, cl1, cl2, cl3)
 	self._val = (gc & 0x1) + ((cl1 & 0x1) << 1) + ((cl2 & 0x1) << 2) + ((cl3 & 0x1) << 3)
@@ -33,13 +32,14 @@ function data:from_hex(raw, index)
 	 return index + 1
 end
 
-function data:__to_string()
-	return table.concat({
-		'GC:', self:GC(),
-		'CL1:', self:CL1(),
-		'CL2:', self:CL2(),
-		'CL3:', self:CL3(),
-	})
+function data:__totable()
+	return {
+		name = 'OCI',
+		gc = self:GC(),
+		cl1 = self:CL1(),
+		cl2 = self:CL2(),
+		cl3 = self:CL3(),
+	}
 end
 
 return data

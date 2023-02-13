@@ -1,6 +1,6 @@
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 
-local element = class('LUA_IEC60870_FRAME_ELEMENT')
+local element = base:subclass('LUA_IEC60870_FRAME_ELEMENT')
 
 element.static.ET_UI = 
 
