@@ -1,11 +1,11 @@
-local class = require 'middleclass'
 
+local base = require 'iec60870.frame.base'
 local helper = require 'iec60870.frame.helper'
 local itf = require 'iec60870.frame.acpi.itf'
 local nsf = require 'iec60870.frame.acpi.nsf'
 local ucf = require 'iec60870.frame.acpi.ucf'
 
-local apci = class('LUA_IEC60870_FRAME_CTRL')
+local apci = base:subclass('LUA_IEC60870_FRAME_CTRL')
 
 apci.static.HEAD = 0x68
 apci.static.FRAME_I = 0
@@ -60,10 +60,6 @@ function apci:__totable()
 		apdu_len = self._apdu_len,
 		frame = helper.totable(self._frame)
 	}
-end
-
-function apci:__tostring()
-	return helper.tostring(self)
 end
 
 return apci

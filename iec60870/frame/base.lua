@@ -1,4 +1,5 @@
 local class = require 'middleclass'
+local helper = require 'iec60870.frame.helper'
 
 local base = class('LUA_IEC60870_FRAME_BASE')
 
@@ -15,6 +16,14 @@ end
 function base:to_hex()
 	assert(false, "not implemented")
 	return ''
+end
+
+function base:__totable()
+	return "Not implemented"
+end
+
+function base:__tostring()
+	helper.tostring(self:__totable())
 end
 
 return base

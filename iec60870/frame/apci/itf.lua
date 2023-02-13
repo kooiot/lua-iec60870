@@ -37,8 +37,12 @@ function itf:from_hex(raw, index)
 	return index + 4
 end
 
-function itf:__tostring()
-	return 'ITF-> S:'..self:SI()..' R:'..self:RI()
+function itf:__totable()
+	return {
+		name = 'ITF',
+		si = self:SI(),
+		ri = self:RI(),
+	}
 end
 
 return itf

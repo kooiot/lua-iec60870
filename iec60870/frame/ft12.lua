@@ -160,3 +160,10 @@ function frame:from_hex(raw, index)
 	return index
 end
 
+function frame:__totable()
+	return {
+		name = 'FT1.2 Frame',
+		ft = self._ft,
+		asdu = self._asdu:__totable()
+	}
+end

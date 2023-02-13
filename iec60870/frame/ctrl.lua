@@ -1,6 +1,6 @@
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 
-local ctrl = class('LUA_IEC60870_FRAME_CTRL')
+local ctrl = base:subclass('LUA_IEC60870_FRAME_CTRL')
 
 ctrl.static.DIR_R		= 0 -- 保留 (用于非平衡传输)
 ctrl.static.DIR_M		= 0 -- 主站 (平衡传输)
@@ -74,11 +74,25 @@ function ctrl:from_hex(raw, index)
 	return index + 1
 end
 
-function ctrl:__tostring()
+function ctrl:__totable()
 	if self:PRM() == 1 then
-		return 'DIR:'..self:DIR()..' PRM:'..self:PRM()..' FCB:'..self:FCB()..' FCV:'..self:FCV()..' FC:'..self:FC()
+		return {
+			name = 'CTRL',
+			dir = self:DIR(),
+			prm = self:PRM(),
+			fcb = self:FCB(),
+			fcv = self:FCV(),
+			fc = self:FC(),
+		}
 	else
-		return 'DIR:'..self:DIR()..' PRM:'..self:PRM()..' ACD:'..self:ACD()..' DFC:'..self:DFC()..' FC:'..self:FC()
+		return {
+			name = 'CTRL',
+			dir = self:DIR(),
+			prm = self:PRM(),
+			acd = self:ACD(),
+			dfc = self:DFC(),
+			fc = self:FC(),
+		}
 	end
 end
 

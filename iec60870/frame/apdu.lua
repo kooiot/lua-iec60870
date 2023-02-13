@@ -123,11 +123,7 @@ end
 
 function frame:__totable()
 	return {
-		name = 'APDU',
+		name = 'APDU Frame',
 		apci = self._apci:__totable(),
 	}
-end
-
-function frame:__tostring()
-	helper.tostring(self:__totable())
 end

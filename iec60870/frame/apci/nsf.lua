@@ -32,7 +32,10 @@ function nsf:from_hex(raw, index)
 end
 
 function nsf:__tostring()
-	return 'ITF-> R:'..self:RI()
+	return {
+		name = 'NSF',
+		ri = self:RI(),
+	}
 end
 
 return nsf

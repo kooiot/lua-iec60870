@@ -1,7 +1,7 @@
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 local conf = require 'iec60870.conf'
 
-local addr = class('LUA_IEC60870_FRAME_ADDR')
+local addr = base:subclass('LUA_IEC60870_FRAME_ADDR')
 
 function addr:initialize(addr)
 	self._addr = assert(addr or 0)
@@ -40,8 +40,11 @@ function addr:from_hex(raw, index)
 	return index + conf.ADDR_SIZE
 end
 
-function addr:__tostring()
-	return 'Addr:'..self._addr
+function addr:__totable()
+	return {
+		name = "ADDR",
+		addr = self._addr
+	}
 end
 
 return addr

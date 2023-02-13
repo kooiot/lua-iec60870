@@ -1,6 +1,6 @@
-local class = require 'middleclass'
+local base = require 'iec60870.frame.base'
 
-local ucf = class('LUA_IEC60870_FRAME_APCI_ITF')
+local ucf = base:subclass('LUA_IEC60870_FRAME_APCI_ITF')
 
 function ucf:initialize(test_fr, stop_dt, start_dt)
 	self._test_fr = test_fr
@@ -59,14 +59,13 @@ function ucf:from_hex(raw, index)
 	return index + 4
 end
 
-function ucf:__tostring()
-	if (self._test_fr & 0x3) ~= 0 then
-		return 'ITF-> TEST_FR:'..self:TEST_FR()
-	elseif (self._stop_dt & 0x3) ~= 0 then
-		return 'ITF-> STOP_DT:'..self:STOP_DT()
-	elseif (self._start_dt & 0x3) ~= 0 then
-		return 'ITF-> START_DT:'..self:START_DT()
-	end
+function ucf:__totable()
+	return {
+		name = 'UCF'
+		test_fr = self:TEST_FR(),
+		stop_dt = self:STOP_DT(),
+		start_dt = self:START_DT(),
+	}
 end
 
 return ucf
