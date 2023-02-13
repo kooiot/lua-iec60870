@@ -11,6 +11,10 @@ function addr:ADDR()
 	return self._addr
 end
 
+function addr:byte_size()
+	return conf.ADDR_SIZE	
+end
+
 function addr:to_hex()
 	if conf.ADDR_SIZE == 1 then
 		return string.char(self._addr & 0xFF)

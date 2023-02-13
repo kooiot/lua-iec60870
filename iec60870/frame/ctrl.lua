@@ -61,6 +61,10 @@ function ctrl:FC()
 	return self._val & 0xF
 end
 
+function ctrl:byte_size()
+	return 1
+end
+
 function ctrl:to_hex()
 	return string.char(self._val)
 end

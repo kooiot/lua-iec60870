@@ -7,61 +7,22 @@ local frame_ctrl = require 'iec60870.frame.ctrl'
 local frame_addr = require 'iec60870.frame.addr'
 local asdu_parser = require 'ie60870.asdu.parser'
 
-local frame = base:subclass('LUA_IEC60870_FRAME_FT12')
+local frame = base:subclass('LUA_IEC60870_FRAME_APDU')
 
-frame.static.FT_FIXED	= 0x10
-frame.static.FT_FLEX	= 0x68
-frame.static.FT_S_E5	= 0xE5
-frame.static.FT_S_A2	= 0xA2
-frame.static.FT_END		= 0x16
+local APDU_HEAD = 0x68
+local APDU_MAX_LEN = 253
 
-function frame:initialize(ft, ctrl, addr, asdu)
-	self._ft = ft or frame.static.FT_FIXED
-	self._ctrl = ctrl or frame_ctrl:new()
-	self._addr = addr or frame_addr:new()
+function frame:initialize(apci, asdu)
+	self._apci = apci
 	self._asdu = asdu
 end
 
-function frame:FT()
-	return self._ft
+function frame:APCI()
+	return self._apci
 end
 
-function frame:CTRL()
-	return self._ctrl
-end
-
-function frame:ADDR()
-	return self._addr
-end
-
-function frame:valid_fixed(raw, index)
-	local dlen = self._ctrl:byte_size() + 1
-	if not conf.FRAME_NO_ADDR then
-		dlen = dlen + self._addr:byte_size()
-	end
-	local len = conf.FT12_FIXED_LEN
-	if len > 0 then
-		dlen = dlen + len
-	end
-
-	if string.len(raw) < index + dlen + 2 then
-		return true, index
-	end
-
-	local c_data = string.sub(raw, index,  index + dlen)
-	local c_cs = helper.sub(c_data)
-	dlen = dlen + 1 -- cs
-
-	local cs = string.sub(raw, index + dlen , index + dlen)
-	if cs ~= c_cs then
-		return false, 'Check sum error'
-	end
-	dlen = dlen + 1 -- c
-
-	local tail = string.byte(raw, index + dlen)
-	assert(tail == 0x16, 'End byte error')
-
-	return true, dlen + 1
+function frame:ASDU()
+	return self._asdu
 end
 
 function frame:valid_flex(raw, index)
@@ -160,3 +121,13 @@ function frame:from_hex(raw, index)
 	return index
 end
 
+function frame:__totable()
+	return {
+		name = 'APDU',
+		apci = self._apci:__totable(),
+	}
+end
+
+function frame:__tostring()
+	helper.tostring(self:__totable())
+end
