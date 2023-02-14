@@ -1,11 +1,13 @@
 local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
+local conf = require 'iec60870.conf'
 
 local data = base:subclass('LUA_IEC60870_DATA_CP56TIME2A')
 
-function data:initialize(tm, ms, iv, su)
-	self._tm = tm or os.time()
-	self._ms = ms or 0
+function data:initialize(tm, iv, su)
+	local tm = tm or conf.time()
+	self._tm = tm // 1000
+	self._ms = ms % 1000
 	self._iv = iv or 0
 	self._su = su or 0
 end
@@ -24,6 +26,11 @@ end
 
 function data:SU()
 	return self._su
+end
+
+function data:timestamp()
+	local t = os.date('*t', self._tm)
+	return ts * 1000 + self._ms
 end
 
 function data:to_hex()

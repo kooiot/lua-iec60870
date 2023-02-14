@@ -9,4 +9,8 @@ local conf = {
 	ASDU_CAOA_SIZE	= 1,		-- common address of ASDU
 }
 
+conf.time = function()
+	return os.time() * 1000
+end
+
 return conf

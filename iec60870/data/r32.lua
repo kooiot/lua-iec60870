@@ -1,7 +1,7 @@
 local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 
-local data = base:subclass('LUA_IEC60870_DATA_SVA')
+local data = base:subclass('LUA_IEC60870_DATA_R32')
 
 function data:initialize(val)
 	self._val = val
@@ -22,7 +22,7 @@ end
 
 function data:__totable()
 	return {
-		name = 'SVA',
+		name = 'IEEE STD 754 Float',
 		val = self._val
 	}
 end

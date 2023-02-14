@@ -26,6 +26,19 @@ function data:MS()
 	return self._ms
 end
 
+function data:timestamp()
+	local t = os.date('*t', os.time())
+	if t.min < self._min then
+		-- an hour ago
+		t = os.date('*t', os.time() - 3600 + 1)
+	end
+
+	t.min = self._min
+	t.sec = self._sec
+	local ts = os.time(t)
+	return ts * 1000 + self._ms
+end
+
 function data:to_hex()
 	local ms = (self._ms & 0x3FF) + ((self._sec & 0x3F) << 10)
 	local min = ((self._iv & 0x1) << 7) + (self._min & 0x3F)
