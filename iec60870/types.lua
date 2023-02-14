@@ -67,6 +67,16 @@ _M.F_AF_NA_1 = 124
 _M.F_SG_NA_1 = 125
 _M.F_DR_TA_1 = 126
 _M.F_SC_NB_1 = 127
+_M.C_RD_NA_2 = 132 -- DLT-634.5101-2002
+_M.C_SE_NA_2 = 136 -- DLT-634.5101-2002
+_M.C_SR_NA_1 = 200 -- DLT-643.5104-2009
+_M.C_RR_NA_1 = 201 -- DLT-643.5104-2009
+_M.C_RS_NA_1 = 202 -- DLT-643.5104-2009
+_M.C_WS_NA_1 = 203 -- DLT-643.5104-2009
+_M.M_IT_NB_1 = 206 -- DLT-643.5104-2009
+_M.M_IT_TC_1 = 207 -- DLT-643.5104-2009
+_M.F_FR_NB_2 = 210 -- DLT-643.5104-2009 F_FR_NA_1
+_M.F_SR_NB_2 = 211 -- DLT-643.5104-2009 F_SR_NA_1
 
 --Type id description
 _M.typeid_table = {
@@ -137,6 +147,16 @@ _M.typeid_table = {
 	[126] = "F_DR_TA_1  directory",
 	[127] = "F_SC_NB_1  Query Log - Request archive file",
 
+	[132] = "C_RD_NA_2  DLT-634.5101-2002 读多个参数命令",
+	[136] = "C_SE_NA_2  DLT-634.5101-2002 预置/激活多个参数命令",
+	[200] = "C_SR_NA_1  DLT-643.5104-2009 切换定值区",
+	[201] = "C_RR_NA_1  DLT-643.5104-2009 读定值区号",
+	[202] = "C_RS_NA_1  DLT-643.5104-2009 读参数和定值",
+	[203] = "C_WS_NA_1  DLT-643.5104-2009 写参数和定值",
+	[206] = "M_IT_NB_1  DLT-643.5104-2009 累计量，短浮点数",
+	[207] = "M_IT_TC_1  DLT-643.5104-2009 带 CP56Time2a 时标的累计量，短浮点数",
+	[210] = "F_FR_NA_2  DLT-643.5104-2009 F_FR_NA_1 文件传输",
+	[211] = "F_SR_NA_2  DLT-643.5104-2009 F_SR_NA_1 软件升级",
 }
 
 _M.typeid2_table = {
@@ -207,6 +227,16 @@ _M.typeid2_table = {
 	[126] = "F_DR_TA_1",
 	[127] = "F_SC_NB_1",
 
+	[132] = "C_RD_NA_2",
+	[136] = "C_SE_NA_2",
+	[200] = "C_SR_NA_1",
+	[201] = "C_RR_NA_1",
+	[202] = "C_RS_NA_1",
+	[203] = "C_WS_NA_1",
+	[206] = "M_IT_NB_1",
+	[207] = "M_IT_TC_1",
+	[210] = "F_FR_NA_2",
+	[211] = "F_SR_NA_2",
 }
 --Type id object length
 _M.asdu_obj_len_table = {
@@ -276,6 +306,17 @@ _M.asdu_obj_len_table = {
 	[125] = 0  , 	--F_SG_NA_1
 	[126] = 13 ,  	--F_DR_TA_1
 	[127] = 16 ,  	--F_SC_NB_1
+
+	[132] = 0 ,		--C_RD_NA_2
+	[136] = 0 ,		--C_SE_NA_2
+	[200] =	0 ,		--C_SR_NA_1
+	[201] =	0 ,		--C_RR_NA_1
+	[202] =	0 ,		--C_RS_NA_1
+	[203] = 0 ,		--C_WS_NA_1
+	[206] = 0 ,		--M_IT_NB_1
+	[207] =	0 ,		--M_IT_TC_1
+	[210] = 0 ,		--F_FR_NA_2
+	[211] = 0 ,		--F_SR_NA_2
 }
 
 --Cause of transfer
