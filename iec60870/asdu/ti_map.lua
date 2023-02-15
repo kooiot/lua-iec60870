@@ -107,7 +107,7 @@ local _M = {
 
 	[t.C_IC_NA_1] = { 'QOI', IV_NULL, TIME_NULL },
 	[t.C_CI_NA_1] = { 'QCC', IV_NULL, TIME_NULL },
-	[t.C_RD_NA_1] = { '', IV_NULL, TIME_NULL },
+	[t.C_RD_NA_1] = { '', IV_NULL, TIME_NULL }, -- ???
 	[t.C_CS_NA_1] = { 'CP56Time2a', IV_NULL, TIME_NULL },
 	[t.C_TS_NA_1] = { 'FBP', IV_NULL, TIME_NULL },
 	[t.C_RP_NA_1] = { 'GRP', IV_NULL, TIME_NULL },
@@ -126,4 +126,16 @@ local _M = {
 	[t.F_SG_NA_1] = { 'FILE', IV_NULL, TIME_NULL },
 	[t.F_DR_TA_1] = { { 'NOF', 'LOF', 'CP56Time2a' }, IV_NULL, TIME3 },
 	[t.F_SC_NB_1] = { { 'NOF', 'CP56Time2a', 'CP56Time2a' }, IV_NULL, TIME_NULL },
+
+	[t.C_RD_NA_2] = { 'I32', IV_NULL, TIME_NULL },
+	[t.C_SE_NA_2] = { { 'NVA', 'QOS' }, IV_NULL, TIME_NULL },
+	[t.C_SR_NA_1] = { '', IV_NULL, TIME_NULL, 'I16' },
+	[t.C_RR_NA_1] = { { 'I16', 'I16', 'I16'}, IV_NULL, TIME_NULL },
+	[t.C_RS_NA_1] = { 'SETS', IV_NULL, TIME_NULL, 'RSN' },
+	[t.C_WS_NA_1] = { 'RSI', IV_NULL, TIME_NULL, 'SETS' },
+	[t.M_IT_NB_1] = { { 'R32', 'QDS' }, IV_2, TIME_NULL, { 'R32', 'QDS' } }, -- 206
+	[t.M_IT_TC_1] = { { 'R32', 'QDS', 'CP56Time2a' }, IV_2, TIME_NULL, { 'R32', 'QDS', 'CP56Time2a' } }, -- 207
+
+	[t.F_FR_NB_2] = { '', IV_NULL, TIME_NULL, '' }, -- 210 Folder
+	[t.F_SR_NB_2] = { '', IV_NULL, TIME_NULL, 'SRI' },
 }
