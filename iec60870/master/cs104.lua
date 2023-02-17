@@ -1,19 +1,21 @@
 local base = require 'iec60870.master.base'
-local ft12 = require 'iec60870.frame.ft12'
+local apdu = require 'iec60870.frame.ft12'
+local apci_i = require 'iec60870.apci.itf'
+local f_apci = require 'iec60870.apci'
 
 local master = base:subclass('LUA_IEC60870_MASTER_CS101')
 
 function master:initialize(conf)
 	local conf = conf or {}
-	conf.ASDU_COT_SIZE = conf.ASDU_COT_SIZE or 1
+	conf.ASDU_COT_SIZE = conf.ASDU_COT_SIZE or 2
 	conf.ASDU_CAOA_SIZE = conf.ASDU_CAOA_SIZE or 2
-	conf.ASDU_ADDR_LEN = conf.ASDU_ADDR_LEN or 2
+	conf.ASDU_ADDR_LEN = conf.ASDU_ADDR_LEN or 3
 	base.initialize(self, conf)
 end
 
-function master:make_frame(ctrl, addr, asdu, ft_type)
-	local ftt = ft_type or ft12.static.FT_FLEX
-	return ft12:new(ftt, ctrl, addr, asdu)
+function master:make_frame(ctrl, addr, asdu, apci_frame)
+	apci_frame = apci_frame or itf:new(self._si, self._ri)
+	return f_apci:new(apci_frame, 
 end
 
 function base:send(req)

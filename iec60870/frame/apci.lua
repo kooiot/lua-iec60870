@@ -7,7 +7,6 @@ local ucf = require 'iec60870.frame.acpi.ucf'
 
 local apci = base:subclass('LUA_IEC60870_FRAME_CTRL')
 
-apci.static.HEAD = 0x68
 apci.static.FRAME_I = 0
 apci.static.FRAME_S = 1
 apci.static.FRAME_U = 2
