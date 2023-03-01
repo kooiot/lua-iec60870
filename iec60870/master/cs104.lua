@@ -9,7 +9,7 @@ function master:initialize(conf)
 	local conf = conf or {}
 	conf.ASDU_COT_SIZE = conf.ASDU_COT_SIZE or 2
 	conf.ASDU_CAOA_SIZE = conf.ASDU_CAOA_SIZE or 2
-	conf.ASDU_ADDR_LEN = conf.ASDU_ADDR_LEN or 3
+	conf.ASDU_OBJ_ADDR_SIZE = conf.ASDU_OBJ_ADDR_SIZE or 3
 	base.initialize(self, conf)
 end
 

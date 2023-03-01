@@ -3,23 +3,48 @@ local base = require 'iec60870.frame.base'
 local ctrl = base:subclass('LUA_IEC60870_FRAME_CTRL')
 
 ctrl.static.DIR_R		= 0 -- 保留 (用于非平衡传输)
-ctrl.static.DIR_M		= 0 -- 主站 (平衡传输)
-ctrl.static.DIR_S		= 1 -- 终端 (平衡传输)
-ctrl.static.PRM_REQ		= 1 -- 启动站
-ctrl.static.PRM_RESP	= 0 -- 从动站
+ctrl.static.DIR_M		= 0 -- 主站 (平衡传输) Controlling Station
+ctrl.static.DIR_S		= 1 -- 终端 (平衡传输) Controlled Station
+ctrl.static.PRM_P		= 1 -- 启动站 (Primary Station)
+ctrl.static.PRM_S		= 0 -- 从动站 (Secondary Station)
 
-ctrl.static.FC_RST_LINK		= 0 -- 复位远方链路
-ctrl.static.FC_RST_PROC		= 1 -- 复位用户进程
-ctrl.static.FC_LINK_TEST	= 2 -- 发送/确认链路测试功能 --- 平衡链路
-ctrl.static.FC_DATA			= 3 -- 发送/确认用户数据
-ctrl.static.FC_DATA_NK		= 4 -- 发送/无回答用户数据
-ctrl.static.FC_ACC			= 8 -- 访问请求 (响应链路状态) --- 非平衡链路
-ctrl.static.FC_LINK			= 9 -- 请求/响应请求链路状态 (响应链路状态)
-ctrl.static.FC_EM1_DATA		= 10 -- 请求/响应请求1级用户数据 --- 非平衡链路
-ctrl.static.FC_EM2_DATA		= 11 -- 请求/响应请求2级用户数据 --- 非平衡链路
+-- FCB Frame count bit
+-- FCV Frame count valid
+-- DFC Dataf low control
+-- ACD Access demand
+
+ctrl.static.FC_RST_LINK		= 0		-- 复位远方链路
+ctrl.static.FC_RST_PROC		= 1		-- 复位用户进程
+ctrl.static.FC_LINK_TEST	= 2		-- 发送/确认链路测试功能 --- 平衡链路
+ctrl.static.FC_DATA			= 3		-- 发送/确认用户数据
+ctrl.static.FC_DATA_NK		= 4		-- 发送/无回答用户数据
+ctrl.static.FC_ACC			= 8		-- 访问请求 (响应链路状态) --- 非平衡链路
+ctrl.static.FC_LINK			= 9		-- 请求/响应请求链路状态 (响应链路状态)
+ctrl.static.FC_EM1_DATA		= 10	-- 请求/响应请求1级用户数据 --- 非平衡链路
+ctrl.static.FC_EM2_DATA		= 11	-- 请求/响应请求2级用户数据 --- 非平衡链路
+
+ctrl.static.FC_S_OK			= 0		-- 从动方向 确认:认可
+ctrl.static.FC_S_FAIL		= 1		-- 从动方向 确认:否定认可,链路忙
+ctrl.static.FC_LINK_RESP	= 11	-- 从动方向 响应:链路状态
+ctrl.static.FC_DATA_RESP	= 8		-- 从动方向 响应:用户数据
+ctrl.static.FC_DATA_RESP	= 9		-- 从动方向 响应:否定认可:无请求的数据
+ctrl.static.FC_SRV_NONE		= 14	-- 从动方向 响应:链路服务未工作
+ctrl.static.FC_SRV_BUSY		= 15	-- 从动方向 响应:链路服务未完成
 
 function ctrl:initialize(dir, prm, fcb_acd, fcv_dfc, fc)
 	self._val = ((dir & 0x1) << 7) + ((prm & 0x1) << 6) + ((fcb_acd & 0x1) << 5) + ((fcv_dfc & 0x1) << 4) + fc
+end
+
+function ctrl.static:need_fcv(fc)
+	if fc == ctrl.static.FC_DATA then
+		return true
+	elseif fc == ctrl.static.FC_EM1_DATA then
+		return true
+	elseif fc == ctrl.static.FC_EM2_DATA then
+		return true
+	else
+		return false
+	end
 end
 
 function ctrl:DIR()

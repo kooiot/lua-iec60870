@@ -24,11 +24,11 @@ function object:TIME()
 end
 
 function object:to_hex()
-	return string.pack('<I'..conf.ASDU_ADDR_LEN, self._addr)..self._data:to_hex()..self._time:to_hex()
+	return string.pack('<I'..conf.ASDU_OBJ_ADDR_SIZE, self._addr)..self._data:to_hex()..self._time:to_hex()
 end
 
 function object:from_hex(raw, index)
-	self._addr, index = string.unpack('<I'..conf.ASDU_ADDR_LEN, raw, index)
+	self._addr, index = string.unpack('<I'..conf.ASDU_OBJ_ADDR_SIZE, raw, index)
 
 	index = self._data:from_hex(raw, index)
 
