@@ -1,7 +1,7 @@
 local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 local f_addr = require 'iec60870.frame.addr'
-local helper = require 'ice60870.frame.helper'
+local helper = require 'iec60870.frame.helper'
 
 local data = base:subclass('LUA_IEC60870_DATA_RSN')
 
