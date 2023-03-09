@@ -6,6 +6,10 @@ _M.time = function()
 	return os.time() * 1000
 end
 
+_M.fork = function(...)
+	assert(false, 'Not implemented')
+end
+
 _M.wakeup = function(ct)
 	assert(false, 'Not implemented')
 end
