@@ -4,9 +4,9 @@ local f_ctrl = require 'iec60870.frame.ctrl'
 
 local slave = class('LUA_IEC60870_MASTER_CS101_SLAVE')
 
-function slave:initialize(master, linker, addr, balance, controlled)
+function slave:initialize(master, channel, addr, balance, controlled)
 	self._master = master
-	self._linker = linker
+	self._channel = channel
 	self._addr = addr
 	self._balance = balance
 	self._controlled = controlled
@@ -45,21 +45,34 @@ function slave:make_ctrl(fc)
 	end
 end
 
+function slave:post_result(result)
+	local ctrl = result:CTRL()
+	if ctrl:ACD() == 1 then
+		if not self._balance then
+			assert(false, 'Balance mode cannot use ACD???')
+		end
+		self._requestClass1 = true -- 一级数据请求
+		self._master:add_task(self);
+	end
+	return result
+end
+
 function slave:req_link_status()
 	local ctrl = self:make_ctrl(f_ctrl.static.FC_LINK)
 	local frame = self:make_frame(ctrl, nil, ft12.static.FT_FIXED)
-	return self:send_req(frame)
+	return self:request(frame)
 end
 
 function slave:req_link_reset()
 	self._fcb = 1
 	local ctrl = self:make_ctrl(f_ctrl.static.FC_RST_LINK)
 	local frame = self:make_frame(ctrl, nil, ft12.static.FT_FIXED)
-	return self:send_req(frame)
+	return self:request(frame)
 end
 
 function slave:fire_poll_station()
 	self._requestClass2 = true
+	self._master:add_task(self);
 end
 
 function slave:send_poll_station()
@@ -92,8 +105,23 @@ end
 function slave:stop()
 end
 
-function slave:send(frame)
-	return self._linker:send(frame)
+function slave:request(frame)
+	local result, err = self._channel:request(frame)
+	if result then
+		self:post_result(result)
+	end
+	return result , err
+end
+
+function slave:do_work()
+	if self._requestClass1 then
+		self._requestClass1 = false
+		--- send request
+	end
+	if self._requestClass2 then
+		self._requestClass2 = false
+		--- send request
+	end
 end
 
 return slave

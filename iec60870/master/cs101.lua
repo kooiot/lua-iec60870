@@ -1,6 +1,7 @@
 local base = require 'iec60870.master.base'
 local ft12 = require 'iec60870.frame.ft12'
 local f_ctrl = require 'iec60870.frame.ctrl'
+local util = require 'iec60870.util'
 
 local master = base:subclass('LUA_IEC60870_MASTER_CS101')
 
@@ -14,6 +15,9 @@ function master:initialize(conf)
 	base.initialize(self, conf)
 	self._slaves = {}
 	self._started = false
+	self._closing = false
+
+	self._tasks = {}
 end
 
 -- lock to specified addr slave for a while until unlock
@@ -44,6 +48,10 @@ function master:del_slave(addr)
 	end
 end
 
+function master:find_slave(addr)
+	return self._slaves[addr]
+end
+
 function master:fire_poll_station(addr)
 	local slave = self._slaves[addr]
 	if not slave then
@@ -56,6 +64,11 @@ function master:start()
 	if self._started then
 		return false, 'Already started'
 	end
+	self._closing = false
+
+	util.fork(function()
+		self:do_task_work()
+	end)
 
 	for addr, slave in pairs(self._slaves) do
 		local r, err = slave:start()
@@ -63,6 +76,7 @@ function master:start()
 			--- TODO: print error
 		end
 	end
+
 	self._started = true
 	return true
 end
@@ -71,6 +85,11 @@ function master:stop()
 	if not self._started then
 		return false, 'Already stoped'
 	end
+	if self._closing then
+		return true, 'Already closing...'
+	end
+
+	self._closing = true
 
 	for addr, slave in pairs(self._slaves) do
 		local r, err = slave:stop()
@@ -80,6 +99,24 @@ function master:stop()
 	end
 	self._started = false
 	return true
+end
+
+function master:do_task_work()
+	while not self._closing do
+		if #self._tasks > 0 then
+			--- Pop one task
+			local task = table.remove(self._tasks, 1)
+			task:do_work()
+		else
+			-- Wait for new task adding
+			util.sleep(100)
+		end
+	end
+end
+
+function master:add_task(task)
+	-- Fifo
+	table.insert(self._tasks, task)
 end
 
 return master
