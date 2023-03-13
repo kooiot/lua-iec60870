@@ -11,6 +11,10 @@ function addr:ADDR()
 	return self._addr
 end
 
+function add:__eq(o)
+	return self:ADDR() == o:ADDR()
+end
+
 function addr:byte_size()
 	return conf.ADDR_SIZE	
 end

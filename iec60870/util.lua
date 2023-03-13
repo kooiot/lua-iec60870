@@ -14,6 +14,10 @@ _M.wakeup = function(ct)
 	assert(false, 'Not implemented')
 end
 
+_M.wait = function(ct)
+	assert(false, 'Not implemented')
+end
+
 _M.sleep = function(timeout_ms, ct)
 	assert(false, 'Not implemented')
 end

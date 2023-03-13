@@ -12,8 +12,4 @@ local conf = {
 	MAX_RESEND_TIME		= 10,		-- Resend retry time cycle (5-30) seconds
 }
 
-conf.time = function()
-	return os.time() * 1000
-end
-
 return conf

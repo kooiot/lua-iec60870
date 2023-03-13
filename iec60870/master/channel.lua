@@ -11,9 +11,18 @@ function channel:initialize(linker)
 	self._request = nil
 	self._result = nil
 	self._buf = buffer:new(1024)
+	self._io_cb = function(...) end
+end
+
+function channel:set_io_cb(cb)
+	self._io_cb = cb
 end
 
 function channel:start()
+	self._linker:bind_recv(function(raw)
+		self:on_recv(raw)
+	end)
+
 	local r, err = self._linker:start()		
 	if not r then
 		return nil, err
@@ -111,15 +120,9 @@ function channel:frame_process()
 end
 
 -- Timeout is ms
-function channel:request(asdu, timeout)
+function channel:request(req, timeout)
 	assert(asdu, 'Request and Callback is required!')
 	local timeout = timeout or g_conf.TIMEOUT
-
-	local req, key = self:make_frame(asdu)
-	if not req then
-		logger.error('Make frame error: '..key)
-		return nil, key
-	end
 
 	local tm = timeout
 	while self._locked do
@@ -133,6 +136,8 @@ function channel:request(asdu, timeout)
 	local t = {}
 	self._locked = t
 
+	local key = req:ADDR()
+	self._io_cb('OUT', key, req:to_hex())
 	local r, err = self:send(req:to_hex())
 	if not r then
 		self._locked = nil
