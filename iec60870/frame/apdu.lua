@@ -12,7 +12,8 @@ local frame = base:subclass('LUA_IEC60870_FRAME_APDU')
 frame.static.HEAD = 0x68
 frame.static.MAX_LEN = 253
 
-function frame:initialize(apci, asdu)
+function frame:initialize(controlled, apci, asdu)
+	self._controlled = controlled
 	self._apci = apci or apci:new()
 	self._asdu = asdu or asdu:new()
 end
@@ -49,7 +50,7 @@ function frame:from_hex(raw, index)
 	local s_start = index + 2
 	index = self._apci:from_hex(raw, index + 2)
 
-	local asdu, err = asdu_parser(string.sub(raw, index, s_start + len - 1))
+	local asdu, err = asdu_parser(not self._controlled, string.sub(raw, index, s_start + len - 1))
 	if asdu then
 		self._asdu = asdu
 	else

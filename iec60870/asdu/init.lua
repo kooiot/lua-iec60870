@@ -1,20 +1,20 @@
 local base = require 'iec60870.frame.base'
 local asdu_unit = require 'iec60870.asdu.unit'
-local asdu_object = require 'iec60870.asdu.object'
+local asdu_ti_map = require 'iec60870.asdu.ti_map'
 local asdu_vsq = require 'iec60870.asdu.vsq'
 
 local helper = require 'iec60870.frame.helper'
 
 local asdu = base:subclass('LUA_IEC60870_FRAME_ASDU')
 
-function asdu:initialize(ctrl, unit, objects)
-	self._ctrl = assert(ctrl, 'Ctrl is required!')
+function asdu:initialize(dir_m, unit, objects)
+	self._dir_m = assert(dir_m, 'DIR_M is required!')
 	self._unit = unit or asdu_unit:new()
 	self._objects = objects or {}
 end
 
-function asdu:CTRL()
-	return self._ctrl
+function asdu:DIRM()
+	return self._dir_m
 end
 
 function asdu:OI()
@@ -60,15 +60,15 @@ function asdu:from_hex(raw, index)
 	if skip_addr then
 		local addr = 0
 		for i = 1, vsq:COUNT() do
-			local obj = asdu_object:new(ti, asdu_addr:new(addr))
-			index = obj:from_hex(i ~= 1, raw, index)
+			local obj = nil
+			obj, index = asdu_ti_map.parse(ti, self._dir_m, addr, raw, index)
 			addr = obj:ADDR():ADDR() + 1
 			table.insert(self._objects, obj)
 		end
 	else
 		for i = 1, vsq:COUNT() do
-			local obj = asdu_object:new(ti)
-			index = obj:from_hex(false, raw, index)
+			local obj = nil
+			obj, index = asdu_ti_map.parse(ti, self._dir_m, nil, raw, index)
 			table.insert(self._objects, obj)
 		end
 	end

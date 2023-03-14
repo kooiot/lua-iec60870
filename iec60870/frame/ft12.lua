@@ -122,7 +122,8 @@ function frame:decode_fixed(raw, index)
 	end
 	local len = conf.FT12_FIXED_LEN
 	if len > 0 then
-		local asdu, err = asdu_parser(string.sub(raw, index, index + len - 1))
+		local dir_m = self._ctrl:PRM() == frame_ctrl.PRM_S
+		local asdu, err = asdu_parser(dir_m, string.sub(raw, index, index + len - 1))
 		if asdu then
 			self._asdu = asdu
 		else
@@ -146,7 +147,8 @@ function frame:decode_flex(raw, index)
 		index = self._addr:from_hex(raw, index)
 	end
 
-	local asdu, err = asdu_parser(string.sub(raw, index, s_start + len - 1))
+	local dir_m = self._ctrl:PRM() == frame_ctrl.PRM_S
+	local asdu, err = asdu_parser(dir_m, string.sub(raw, index, s_start + len - 1))
 	if asdu then
 		self._asdu = asdu
 	else
