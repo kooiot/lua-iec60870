@@ -55,9 +55,15 @@ end
 -- 2: IV getter
 -- 3: Timestamp getter
 -- 4: objects prefix
--- 5: M side response prefix
--- 6: M side object name or object name list
+-- 5: M side object name or object name list
+-- 6: M side response prefix
 local _M = {
+	OI_INDEX = 1,
+	IV_INDEX = 2,
+	TM_INDEX = 3,
+	PRE_INDEX = 4,
+	MOI_INDEX = 5,
+	MPRE_INDEX = 6,
 	[t.M_SP_NA_1] = { 'SIQ', IV, TIME_NULL },
 	[t.M_SP_TA_1] = { { 'SIQ', 'CP24Time2a' }, IV, TIME2 },
 	[t.M_DP_NA_1] = { 'DIQ', IV, TIME_NULL },
@@ -142,3 +148,49 @@ local _M = {
 	[t.F_FR_NB_2] = { '', IV_NULL, TIME_NULL, '' }, -- 210 Folder
 	[t.F_SR_NB_2] = { '', IV_NULL, TIME_NULL, 'SRI' },
 }
+
+_M.IV = function(ti, data)
+	local t = assert(_M[unit:TI()], 'TI ['..unit:TI()..'] is not supported!')
+	return t[_M.IV_INDEX](data)
+end
+
+_M.TM = function(ti, data)
+	local t = assert(_M[unit:TI()], 'TI ['..unit:TI()..'] is not supported!')
+	return t[_M.TM_INDEX](data)
+end
+
+_M.parse_obj = function(name, raw, index)
+	local m, err = pcall(require, 'iec60870.data.'..string.lower(name))
+	if not m then
+		assert(false, 'Object name not found for '..name)
+	end
+	local obj = m:new()
+	index = obj:from_hex(raw, index)
+	return obj, index
+end
+
+_M.parse_pre = function(ti, dir_m, raw, index)
+	local t = assert(_M[unit:TI()], 'TI ['..unit:TI()..'] is not supported!')
+	local obj_pre = dir_m and t[_M.MPRE_INDEX] or t[_M.PRE_INDEX]
+	if not obj_pre or string.len(obj_pre) == '' then
+		return nil, index
+	end
+	if type(obj_pre) == 'string' then
+		return _M.parse_obj(obj_pre, raw, index)
+	else
+		assert(false, 'Not support')
+	end
+end
+
+_M.parse = function(ti, dir_m, addr, raw, index)
+	local t = assert(_M[unit:TI()], 'TI ['..unit:TI()..'] is not supported!')
+	local skip_addr = addr ~= nil
+	local obj_name_list = dir_m and t[_M.MOI_INDEX] or t[_M.OI_INDEX]
+	local asdu_object = require 'iec60870.asdu.object'
+	local obj = asdu_object:new(ti, addr)
+	index = obj:from_hex(skip_addr, obj_name_list, raw, index)
+
+	return obj, index
+end
+
+return _M

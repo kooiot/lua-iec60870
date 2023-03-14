@@ -48,6 +48,7 @@ function channel:stop()
 end
 
 function channel:on_recv(raw)
+	self._io_cb('IN', nil, raw)
 	self._buf:append(raw)
 	if self._apdu_wait then
 		util.wakeup(self._apdu_wait)

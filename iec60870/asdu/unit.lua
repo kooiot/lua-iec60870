@@ -28,6 +28,14 @@ function unit:CAOA()
 	return self._caoa
 end
 
+function unit:OBJ()
+	return self._obj
+end
+
+function unit:SET_OBJ(obj)
+	self._obj = obj
+end
+
 function unit:to_hex()
 	return string.char(self._ti)..self._vsq:to_hex()..self._cot:to_hex()..self._caoa:to_hex()
 end

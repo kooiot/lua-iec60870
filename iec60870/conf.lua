@@ -4,6 +4,7 @@
 local conf = {
 	TIMEOUT				= 5000,		-- Request default timeout(ms)
 	FRAME_NO_ADDR		= false,	-- Frame has no addr
+	ADDR_SIZE			= 2,		-- Frame addr size
 	FT12_FIXED_LEN		= 0,		-- FIXED Frame FT1.2 ASDU length
 	ASDU_COT_SIZE		= 1,		-- cause of transfer
 	ASDU_CAOA_SIZE		= 2,		-- common address of ASDU

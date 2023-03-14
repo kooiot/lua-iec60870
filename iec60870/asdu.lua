@@ -6,17 +6,22 @@ local helper = require 'iec60870.frame.helper'
 
 local asdu = base:subclass('LUA_IEC60870_FRAME_ASDU')
 
-function asdu:initialize(unit, objects)
+function asdu:initialize(ctrl, unit, objects)
+	self._ctrl = assert(ctrl, 'Ctrl is required!')
 	self._unit = unit or asdu_unit:new()
 	self._objects = objects or {}
+end
+
+function asdu:CTRL()
+	return self._ctrl
 end
 
 function asdu:OI()
 	return self._unit
 end
 
-function asdu:DATA()
-	return self._data
+function asdu:OBJS()
+	return self._objects
 end
 
 function asdu:to_hex()
