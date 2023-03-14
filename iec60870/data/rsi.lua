@@ -5,6 +5,9 @@ local helper = require 'iec60870.frame.helper'
 
 local data = base:subclass('LUA_IEC60870_DATA_RSI')
 
+-- 修改多个参数和定值的固化/撤销报文 (203)
+--SN: 定值区号
+--TI: 特征标识
 function data:initialize(sn, ti)
 	self._sn = sn
 	self._ti = ti
@@ -29,7 +32,7 @@ end
 
 function data:__totable()
 	return {
-		name = 'RSN',
+		name = 'RSI',
 		sn = self._sn,
 		ti = self._ti,
 	}

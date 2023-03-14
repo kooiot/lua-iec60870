@@ -5,6 +5,7 @@ local helper = require 'iec60870.frame.helper'
 
 local data = base:subclass('LUA_IEC60870_DATA_RSN')
 
+--- If addrs empty, read all
 function data:initialize(sn, addrs)
 	self._sn = sn
 	self._addrs = addrs
