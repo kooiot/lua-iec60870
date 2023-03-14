@@ -20,6 +20,10 @@ function unit:VSQ()
 	return self._vsq
 end
 
+function unit:SET_VSQ(vsq)
+	self._vsq = vsq
+end
+
 function unit:COT()
 	return self._cot
 end
