@@ -1,8 +1,8 @@
 -- 643.5104 帧格式
 
+local helper = require 'iec60870.common.helper'
 local base = require 'iec60870.frame.base'
 local conf = require 'iec60870.conf'
-local helper = require 'iec60870.frame.helper'
 local frame_apci = require 'iec60870.frame.apci'
 local frame_asdu = require 'iec60870.asdu.init'
 local frame_ctrl = require 'iec60870.frame.ctrl'

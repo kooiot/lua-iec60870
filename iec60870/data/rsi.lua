@@ -1,6 +1,6 @@
+local helper = require 'iec60870.common.helper'
 local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
-local helper = require 'iec60870.frame.helper'
 
 local data = base:subclass('LUA_IEC60870_DATA_RSI')
 

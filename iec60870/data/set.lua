@@ -1,9 +1,9 @@
+local helper = require 'iec60870.common.helper'
 local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
 local d_nof = require 'iec60870.data.nof'
 local d_nos = require 'iec60870.data.nos'
 local d_los = require 'iec60870.data.los'
-local helper = require 'iec60870.frame.helper'
 
 local data = base:subclass('LUA_IEC60870_DATA_SET')
 

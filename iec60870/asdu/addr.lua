@@ -1,5 +1,5 @@
+local helper = require 'iec60870.common.helper'
 local base = require 'iec60870.frame.base'
-local helper = require 'iec60870.frame.helper'
 local conf = require 'iec60870.conf'
 
 local addr = base:subclass('LUA_IEC60870_ASDU_ADDR')

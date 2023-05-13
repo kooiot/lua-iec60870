@@ -1,5 +1,5 @@
 local class = require 'middleclass'
-local helper = require 'iec60870.frame.helper'
+local helper = require 'iec60870.common.helper'
 
 local base = class('LUA_IEC60870_FRAME_BASE')
 

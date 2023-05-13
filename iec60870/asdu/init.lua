@@ -1,10 +1,9 @@
+local helper = require 'iec60870.common.helper'
 local base = require 'iec60870.frame.base'
 local f_addr = require 'iec60870.frame.addr'
 local asdu_unit = require 'iec60870.asdu.unit'
 local asdu_ti_map = require 'iec60870.asdu.ti_map'
 local asdu_vsq = require 'iec60870.asdu.vsq'
-
-local helper = require 'iec60870.frame.helper'
 
 local asdu = base:subclass('LUA_IEC60870_FRAME_ASDU')
 

@@ -1,5 +1,5 @@
+local helper = require 'iec60870.common.helper'
 local base = require 'iec60870.frame.base'
-local helper = require 'iec60870.frame.helper'
 local ti_map = require 'iec60870.asdu.ti_map'
 local conf = require 'iec60870.conf'
 local asdu_addr = require 'iec60870.asdu.addr'

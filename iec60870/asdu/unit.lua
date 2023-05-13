@@ -1,9 +1,9 @@
+local helper = require 'iec60870.common.helper'
 local base = require 'iec60870.frame.base'
+
 local VSQ = require 'iec60870.asdu.vsq'
 local COT = require 'iec60870.asdu.cot'
 local CAOA = require 'iec60870.asdu.caoa'
-
-local helper = require 'iec60870.frame.helper'
 
 local unit = base:subclass('LUA_IEC60870_FRAME_UNIT')
 

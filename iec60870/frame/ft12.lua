@@ -1,8 +1,8 @@
 -- FT1.2 可变帧格式
 
-local base = require 'iec60870.frame.base'
+local helper = require 'iec60870.common.helper'
 local conf = require 'iec60870.conf'
-local helper = require 'iec60870.frame.helper'
+local base = require 'iec60870.frame.base'
 local frame_ctrl = require 'iec60870.frame.ctrl'
 local frame_addr = require 'iec60870.frame.addr'
 local asdu_parser = require 'iec60870.asdu.parser'

@@ -1,6 +1,5 @@
-
+local helper = require 'iec60870.common.helper'
 local base = require 'iec60870.frame.base'
-local helper = require 'iec60870.frame.helper'
 local itf = require 'iec60870.frame.apci.itf'
 local nsf = require 'iec60870.frame.apci.nsf'
 local ucf = require 'iec60870.frame.apci.ucf'
