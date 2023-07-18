@@ -15,12 +15,11 @@ local asdu_asdu = require 'iec60870.asdu.init'
 
 local master = base:subclass('LUA_IEC60870_SLAVE_CS101_MASTER')
 
-function master:initialize(master, channel, addr, balance, controlled)
+function master:initialize(device, channel, balanced, controlled)
 	base.initialize(self)
-	self._master = assert(master, 'Master is required')
+	self._device = assert(master, 'Device is required')
 	self._channel = assert(channel, 'Channel is required')
-	self._addr = assert(addr, 'Address is required')
-	self._balance = balance
+	self._balanced = balanced
 	self._controlled = controlled
 	self._fcb = 1
 	self._retry = 0
@@ -33,51 +32,29 @@ function master:initialize(master, channel, addr, balance, controlled)
 	self._closing = false
 
 	local si = {
-		'Slave created balance:',
-		self._balance and 'TRUE' or 'FALSE',
+		'Master object created balanced:',
+		self._balanced and 'TRUE' or 'FALSE',
 		' controlled:',
 		self._controlled and 'TRUE' or 'FALSE',
 	}
 	logger.debug(table.concat(si))
 end
 
-function master:set_poll_cycle(ms)
-	self._poll_cycle = ms
-end
-
-function master:set_data_cb(cb)
-	self._data_cb = cb or function() end
-end
-
 function master:on_run(now_ms)
-	-- print(self._inited, self._poll_cycle, self._last_poll, now_ms)
-	if self._poll_cycle == 0 then
-		return -- do nothing
-	end
 	if not self._inited then
-		self._last_poll = now_ms - self._poll_cycle
 		return
 	end
 
-	local next_poll_ms = self._last_poll + self._poll_cycle
-	if now_ms > next_poll_ms then
-		logger.debug('Send poll station ...')
-		-- Send poll station
-		local r, err = self:send_poll_station() 
-		if r then
-			self._last_poll = next_poll_ms
-		else
-			logger.error('Poll station failed: '..err)
-			self._last_poll = self._last_poll + 3000 -- wait for three seconds retry
-		end
-	end
+	-- TODO:
+	self._device:on_run()
+	return
 end
 
 function master:make_data_frame(asdu)
 	return self:make_frame(f_ctrl.static.FC_DATA, asdu)
 end
 
-function master:make_frame(fc, asdu, ft_type)
+function master:make_frame(fc, acd, asdu, ft_type)
 	local ftt = ft_type
 	if not ftt then
 		if asdu then
@@ -86,16 +63,17 @@ function master:make_frame(fc, asdu, ft_type)
 			ftt = ft12.static.FT_FIXED
 		end
 	end
-	local ctrl = self:make_ctrl(fc)
-	return ft12:new(ftt, ctrl, f_addr:new(self._addr), asdu)
+	local ctrl = self:make_ctrl(fc, acd)
+	local addr = f_addr:new(self._device:ADDR())
+	return ft12:new(ftt, ctrl, addr, asdu)
 end
 
 function master:ADDR()
-	return self._addr
+	return self._device:ADDR()
 end
 
 function master:DIR()
-	if not self._balance then
+	if not self._balanced then
 		return f_ctrl.static.DIR_R
 	end
 	return self._controlled and f_ctrl.static.DIR_S or f_ctrl.static.DIR_M
@@ -114,39 +92,32 @@ function master:FCB_NEXT()
 	self._fcb = (self._fcb + 1) % 2 
 end
 
-function master:make_ctrl(fc)
-	local fcv_en =  f_ctrl:need_fcv(fc) -- FCV required by function code
-	if fcv_en then
-		return f_ctrl:new(self:DIR(), self:PRM(), self:FCB(), 1, fc)
+function master:make_ctrl(fc, acd)
+	if self._balanced or  acd == nil then
+		return f_ctrl:new(self:DIR(), self:PRM(), 0, 1, fc)
 	else
-		return f_ctrl:new(self:DIR(), self:PRM(), 0, 0, fc)
+		if acd ~= 1 then
+			acd = acd and 1 or 0
+		end
+		return f_ctrl:new(self:DIR(), self:PRM(), acd, 1, fc)
 	end
 end
 
-function master:post_result(req, resp)
-	if req then
-		local ctrl = req:CTRL()
-		local fc = ctrl:FC()
-		if f_ctrl:need_fcv(fc) then
-			self:FCB_NEXT()
-		end
-	end
-
+function master:check_fcb(req)
 	local ctrl = resp:CTRL()
 	if ctrl:ACD() == 1 then
-		if self._balance then
+		if self._balanced then
 			assert(false, 'Balance mode cannot use ACD???')
 		end
-		self._requestClass1 = true -- 一级数据请求
-		util.fork(function()
-			self:do_work()
-		end)
+		if ctrl:FCB() == self._fcb then
+			return false, 'FCB not excepted'
+		end
 	end
-	return req, resp
+	return true
 end
 
 function master:req_link_status()
-	logger.info('master '..self._addr..' request link status...')
+	logger.info('master '..self._device:ADDR()..' request link status...')
 	local frame = self:make_frame(f_ctrl.static.FC_LINK)
 	local resp, err = self:request_inner(frame)
 	if not resp then
@@ -161,7 +132,7 @@ function master:req_link_status()
 end
 
 function master:req_link_reset()
-	logger.info('master '..self._addr..' request link reset...')
+	logger.info('master '..self._device:ADDR()..' request link reset...')
 	self._fcb = 1
 	self._last_poll = 0 -- for poll data 
 	self._last_poll =  util.now() - self._poll_cycle
@@ -180,7 +151,7 @@ end
 
 function master:fire_poll_station()
 	self._requestClass2 = true
-	self._master:add_task(self);
+	self._device:add_task(self);
 end
 
 function master:send_poll_station(qoi)
@@ -204,7 +175,7 @@ function master:send_poll_station(qoi)
 end
 
 function master:_start_inner()
-	if not self._balance then
+	if not self._balanced then
 		return self:unbalance_start()
 	end
 	return self:balance_start()
@@ -279,12 +250,8 @@ function master:stop()
 end
 
 function master:request_inner(frame)
-	local result, err = self._channel:request(frame)
-	if result then
-		-- For anythings need to be done when received response
-		self:post_result(frame, result)
-	end
-	return result, err
+	-- anything we need to process here?
+	return self._channel:request(frame)
 end
 
 function master:request(frame, need_confirm, need_terminate, desc)
@@ -391,48 +358,31 @@ function master:request(frame, need_confirm, need_terminate, desc)
 	return result
 end
 
-function master:request_class1()
-	local req = self:make_frame(f_ctrl.static.FC_EM1_DATA, nil)
-	logger.debug('Send request class #1')
-	local resp, err = self:request_inner(req)
-	if not resp then
-		logger.info('Retry request class #1 data')
-		self._requestClass1 = true -- retry to get class 1 data
-		return nil, err
+function master:on_inttergation()
+	if self._device:make_snapshot() then
+		return self:make_frame(f_ctrl.static.FC_S_OK, true)
+	else
+		return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
 	end
-
-	if resp:FT() == ft12.static.FT_S_E5 then
-		-- no class1 data
-		return true
-	end
-
-	local ctrl = resp:CTRL()
-	if ctrl:FC() == f_ctrl.static.FC_DATA_NONE then
-		-- no class1 data
-		return true
-	end
-	return self:on_request(resp)
 end
 
-function master:request_class2()
-	local req = self:make_frame(f_ctrl.static.FC_EM2_DATA, nil)
-	local resp, err = self:request_inner(req)
-	if not resp then
-		return nil, err
+function master:on_request_class1()
+	local acd, asdu = self._device:poll_class1()
+	if asdu then
+		return self:make_frame(f_ctrl.static.FC_EM1_DATA, acd, asdu)
+	else
+		-- TODO: what should we return?
+		return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
 	end
+end
 
-	if resp:FT() == ft12.static.FT_S_E5 then
-		-- no class2 data
-		return true
+function master:on_request_class2()
+	local acd, asdu = self._device:poll_class2()
+	if asdu then
+		return self:make_frame(f_ctrl.static.FC_EM1_DATA, acd, asdu)
+	else
+		return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
 	end
-
-	local ctrl = resp:CTRL()
-	if ctrl:FC() == f_ctrl.static.FC_DATA_NONE then
-		-- no class2 data
-		return true
-	end
-
-	return self:on_request(resp)
 end
 
 function master:do_work()
@@ -478,41 +428,87 @@ function master:do_request_check(frame)
 end
 
 function master:on_request(frame)
-	-- print(frame)
 	if self:do_request_check(frame) then
 		return true
 	end
 
 	local ctrl = frame:CTRL()
-	--[[
-	if ctrl:FC() == f_ctrl.static.FC_DATA then
-		return true
-	end
-	]]--
 
-	if ctrl:FC() == f_ctrl.static.FC_DATA_RESP then
+	if ctrl:FC() == f_ctrl.static.FC_LINK_TEST then
+		return self:make_frame(f_ctrl.static.FC_S_OK, true)
+	end
+
+	if ctrl:FC() == f_ctrl.static.FC_DATA then
 		local asdu = frame:ASDU()
 		if asdu then
 			local unit = asdu:UNIT()
 			-- Spontaneous data
-			if unit:COT():CAUSE() == 3 then
-				local objs = asdu:OBJS()
-				for k, v in pairs(objs) do
-					-- TODO: new callback???
-					self._data_cb(v, asdu)
+			if unit:TI() == 100 then
+				if unit:COT():CUASE() == 6 then
+					-- Check TI=100
+					return self:on_inttergation()
 				end
-				return true
+			elseif unit:TI() == 102 or unit:TI() == 132 then
+				if unit:COT():CUASE() == 6 then
+					-- add class2 data
+					return self:on_param_read()
+				end
+			elseif unit:TI() == 48 or unit:TI() == 136 then
+				if unit:COT():CUASE() == 6 then
+					if unit:SE() == 1 then
+						-- add class2 data
+						return self:on_param_set_select()
+					else
+						-- add class2 data
+						return self:on_param_set_apply()
+					end
+				end
+			elseif unit:TI() == 103 then
+				if unit:COT():CUASE() == 6 then
+					return self:on_time_sync()
+				end
+			elseif unit:TI() == 104 then
+				if unit:COT():CUASE() == 6 then
+					--- Add class2 data for test confirm
+					return self:on_test_command()
+				end
+			elseif unit:TI() == 45 then
+				if unit:COT():CUASE() == 6 then
+					if unit:SE() == 1 then
+						return self:on_ctrl_select()
+					else
+						-- added to class1 (TI=45/46 COT=10, S/E=0)
+						return self:on_ctrl_apply()
+					end
+				elseif unit:COT():CUASE() == 8 then
+					return self:on_ctrl_abort()
+				end
+			elseif unit:TI() == 46 then
+				if unit:COT():CUASE() == 6 then
+					if unit:SE() == 1 then
+						return self:on_ctrl_select()
+					else
+						-- added to class1 (TI=45/46 COT=10, S/E=0)
+						return self:on_ctrl_apply()
+					end
+				elseif unit:COT():CUASE() == 8 then
+					return self:on_ctrl_abort()
+				end
+			else
+				-- TODO:
+				return nil, 'ASDU missing'
 			end
-
-			local objs = asdu:OBJS()
-			for k, v in pairs(objs) do
-				-- print(k, v)
-				self._data_cb(v, asdu)
-			end
-			return true
+		else
+			return nil, 'ASDU missing'
 		end
+	end
 
-		-- TODO: 
+	if ctrl:FC() == f_ctrl.static.FC_EM1_DATA then
+		return self:on_request_class1()
+	end
+
+	if ctrl:FC() == f_ctrl.static.FC_EM2_DATA then
+		return self:on_request_class2()
 	end
 
 	return nil, "Invalid response fc:"..ctrl:FC()

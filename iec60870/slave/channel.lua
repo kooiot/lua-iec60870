@@ -164,7 +164,6 @@ end
 function channel:send(req)
 	assert(req, 'Request is required!')
 	assert(self._linker, 'Linker cannot be nil')
-	local timeout = timeout or g_conf.TIMEOUT
 
 	logger.debug('Send frame', tostring(req))
 

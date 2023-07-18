@@ -25,7 +25,7 @@ function channel:frame_parser(raw, index)
 end
 
 function channel:frame_min()
-	return 1
+	return 6
 end
 
 function channel:match_request(req, resp)
