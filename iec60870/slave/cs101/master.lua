@@ -1,4 +1,4 @@
-local base = require 'iec60870.master.common.master'
+local base = require 'iec60870.slave.common.master'
 local types = require 'iec60870.types'
 local util = require 'iec60870.common.util'
 local logger = require 'iec60870.common.logger'
