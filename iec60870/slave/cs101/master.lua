@@ -20,7 +20,7 @@ local master = base:subclass('LUA_IEC60870_SLAVE_CS101_MASTER')
 
 function master:initialize(device, channel, balanced, controlled)
 	base.initialize(self)
-	self._device = assert(master, 'Device is required')
+	self._device = assert(device, 'Device is required')
 	self._channel = assert(channel, 'Channel is required')
 	self._balanced = balanced
 	self._controlled = controlled

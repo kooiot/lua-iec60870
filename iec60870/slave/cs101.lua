@@ -12,11 +12,12 @@ function slave:initialize(conf)
 	conf.MAX_RESEND = conf.MAX_RESEND or 3
 	conf.MAX_RESEND_TIME = conf.MAX_RESEND_TIME or 10
 	base.initialize(self, conf)
+	self._masters = {}
 	self._started = false
 	self._closing = false
 
 	self._tasks = {}
-	self._next_slaves = {}
+	self._next_masters = {}
 end
 
 -- lock to specified addr slave for a while until unlock
@@ -29,8 +30,38 @@ function slave:unlock_slave(addr)
 	self._lock_slave = nil
 end
 
+function slave:add_master(addr, master)
+	assert(not self._masters[addr])
+	self._masters[addr] = master
+	if self._started then
+		local r, err = master:start()
+		if not r then
+			return nil, err
+		end
+	end
+	return true
+end
+
+function slave:del_master(addr)
+	local master = self._masters[addr]
+	if master then
+		self._masters[addr] = nil
+		master:stop()
+	end
+end
+
+function slave:find_master(addr)
+	return self._masters[addr]
+end
+
 function slave:poll_data(addr)
-	-- return slave:send_poll_station()
+	--[[
+	local slave = self._masters[addr]
+	if not slave then
+		return nil, 'Slave ['..addr..'] not found'
+	end
+	return slave:send_poll_station()
+	]]--
 end
 
 function slave:start()
@@ -41,7 +72,8 @@ function slave:start()
 
 	util.fork(function()
 		while not self._closing do
-			self:on_run()
+			self:do_next_master()
+			-- Wait for new task adding
 		end
 	end)
 	util.fork(function()
@@ -62,11 +94,28 @@ function slave:stop()
 
 	self._closing = true
 
+	for addr, slave in pairs(self._masters) do
+		local r, err = slave:stop()
+		if not r then
+			--- TODO: print error
+		end
+	end
 	self._started = false
 	return true
 end
 
-function slave:on_run()
+function slave:do_next_master()
+	if #self._next_masters == 0 then
+		util.sleep(100) -- 100 ms
+		for k, v in pairs(self._masters) do
+			table.insert(self._next_masters, k)
+		end
+	end
+	local addr = table.remove(self._next_masters, 1)
+	local master = self._masters[addr]
+	if master then
+		master:on_run(util.now())
+	end
 end
 
 function slave:do_task_work()
