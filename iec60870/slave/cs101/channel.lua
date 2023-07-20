@@ -1,11 +1,11 @@
-local base = require 'iec60870.master.channel'
+local base = require 'iec60870.slave.channel'
 local ft12 = require 'iec60870.frame.ft12'
 local f_ctrl = require 'iec60870.frame.ctrl'
 
 local channel = base:subclass('LUA_IEC60870_SLAVE_CS101_CHANNEL')
 
-function channel:initialize(master, linker)
-	self._master = assert(master, 'Master is required')
+function channel:initialize(slave, linker)
+	self._slave = assert(slave, 'Slave is required')
 	assert(linker, 'Linker is required')
 	base.initialize(self, linker)
 end
@@ -30,25 +30,11 @@ function channel:match_request(req, resp)
 		return false, 'Address not matched'
 	end
 
-	-- Find addr
-	local master = self._master:find_master(addr:ADDR())
-	if not master then
-		return false, 'Address not match any master'
-	end
-
-	return true
+	return self._slave:match_request(req, resp)
 end
 
 function channel:on_request(req)
-	local addr = req:ADDR()
-
-	-- Find addr
-	local master = self._master:find_master(addr:ADDR())
-	if not master then
-		return false, 'Address not match any master'
-	end
-
-	return master:on_request(req)
+	return self._slave:on_request(req)
 end
 
 return channel

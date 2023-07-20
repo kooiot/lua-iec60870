@@ -1,12 +1,11 @@
+--[[ 
+-- Base class for 60870 master object (for slave)
+--]]
 local class = require 'middleclass'
 
 local master = class('LUA_IEC60870_SLAVE_COMMON_MASTER')
 
 function master:initialize()
-end
-
-function master:ADDR()
-	assert(false, 'Not implemented!')
 end
 
 function master:make_data_frame(asdu)

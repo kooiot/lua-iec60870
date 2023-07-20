@@ -27,4 +27,8 @@ function base:match_request(req, resp)
 	return true
 end
 
+function base:ADDR()
+	assert(false, 'Not implemented!')
+end
+
 return base

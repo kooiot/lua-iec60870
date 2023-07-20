@@ -1,3 +1,6 @@
+--[[
+-- The object map master information and handles master request logicals
+--]]
 local base = require 'iec60870.slave.common.master'
 local types = require 'iec60870.types'
 local util = require 'iec60870.common.util'
