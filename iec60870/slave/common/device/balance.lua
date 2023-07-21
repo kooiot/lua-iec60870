@@ -1,12 +1,20 @@
 local class = require 'middleclass'
+local types = require 'iec60870.types'
+local ti_map = require 'iec60870.asdu.ti_map'
+local asdu_unit = require 'iec60870.asdu.unit'
+local asdu_cot = require 'iec60870.asdu.cot'
+local asdu_addr = require 'iec60870.asdu.addr'
+local asdu_caoa = require 'iec60870.asdu.caoa'
+local asdu_object = require 'iec60870.asdu.object'
+local asdu_asdu = require 'iec60870.asdu.init'
 
 local device = class('LUA_IEC60870_SLAVE_COMMON_DEVICE')
 
 function device:initialize(addr)
 	self._addr = addr
 	self._first_class1 = true
-	self._data_snapshot = {}
-	self._data_snapshot_cur = nil
+	self._data_snapshot = nil
+	self._data_snapshot_cur = 0
 end
 
 function device:on_disconnected()
@@ -26,6 +34,10 @@ end
 
 function device:get_spontaneous()
 	assert(false, 'Not implemented!')
+end
+
+function device:get_class2_data()
+	return nil
 end
 
 function device:ADDR()
@@ -64,7 +76,7 @@ function device:poll_class1()
 	end
 
 	if #self._data_snapshot < self._data_snapshot_cur then
-		self._data_snaphost = nil
+		self._data_snapshot = nil
 		self._data_snapshot_cur = 0
 		-- For termination COT=10
 		self._first_class1 = false
@@ -78,18 +90,17 @@ end
 
 function device:poll_class2()
 	local data_c2 = self:get_class2_data()
-	if self:has_spontaneous() then
-		if data_c2 then
-			-- TODO: make asdu
-			return true, data_c2
-		else
-			local data_sp = self:get_spontaneous()
-			-- TODO: make asdu
-			return self:has_spontaneous(), data_sp
-		end
+	local has_sp = self:has_spontaneous() 
+	if data_c2 then
+		return has_sp, data_c2
 	end
-	-- TODO: make asdu
-	return false, data_c2
+
+	if has_sp then
+		-- return wether has more sp data and current sp data
+		return self:has_spontaneous(), self:get_spontaneous()
+	end
+
+	return false, nil
 end
 
 function device:on_run()

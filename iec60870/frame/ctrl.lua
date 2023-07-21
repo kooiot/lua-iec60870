@@ -15,7 +15,7 @@ ctrl.static.PRM_S		= 0 -- 从动站 (Secondary Station)
 
 ctrl.static.FC_RST_LINK		= 0		-- 复位远方链路
 ctrl.static.FC_RST_PROC		= 1		-- 复位用户进程
-ctrl.static.FC_LINK_TEST	= 2		-- 发送/确认链路测试功能 --- 平衡链路
+ctrl.static.FC_LINK_TEST	= 2		-- 发送/确认链路测试功能 --- 平衡链路(心跳测试)
 ctrl.static.FC_DATA			= 3		-- 发送/确认用户数据
 ctrl.static.FC_DATA_NK		= 4		-- 发送/无回答用户数据
 ctrl.static.FC_ACC			= 8		-- 访问请求 (响应链路状态) --- 非平衡链路

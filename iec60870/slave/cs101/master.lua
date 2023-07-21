@@ -33,6 +33,7 @@ function master:initialize(device, channel, balanced, controlled)
 	self._confirm_timeout = 5000
 	self._terminate_timeout = 5000
 	self._closing = false
+	self._connect_init = false
 
 	local si = {
 		'Master object created balanced:',
@@ -119,103 +120,21 @@ function master:check_fcb(req)
 	return true
 end
 
-function master:req_link_status()
-	logger.info('master '..self._device:ADDR()..' request link status...')
-	local frame = self:make_frame(f_ctrl.static.FC_LINK)
-	local resp, err = self:request_inner(frame)
-	if not resp then
-		return nil, err
-	end
-
-	local ctrl = resp:CTRL()
-	if ctrl:FC() ~= f_ctrl.static.FC_LINK_RESP then
-		return nil, "Invalid response fc:"..ctrl:FC()
-	end
-	return true
-end
-
-function master:req_link_reset()
-	logger.info('master '..self._device:ADDR()..' request link reset...')
-	self._fcb = 1
-	self._last_poll = 0 -- for poll data 
-	self._last_poll =  util.now() - self._poll_cycle
-	local frame = self:make_frame(f_ctrl.static.FC_RST_LINK)
-	local resp, err = self:request_inner(frame)
-	if not resp then
-		return nil, err
-	end
-
-	local ctrl = resp:CTRL()
-	if ctrl:FC() ~= f_ctrl.static.FC_S_OK then
-		return nil, "Invalid response fc:"..ctrl:FC()
-	end
-	return true
-end
-
-function master:fire_poll_station()
-	self._requestClass2 = true
-	self._device:add_task(self);
-end
-
-function master:send_poll_station(qoi)
-	if not self._inited then
-		logger.debug('Not initialized....')
-		return nil, 'Not initialized!'
-	end
-	if self._requestClass1 or self._requestClass2 then
-		return nil, 'Class1/2 data is requesting..'
-	end
-
-	local asdu = {} -- FC=3 TI=100 COT=6 QOI=20
-	local qoi = ti_map.create_data('qoi', qoi or 20)
-	local cot = asdu_cot:new(types.COT_ACTIVATION) -- 6
-	local caoa = asdu_caoa:new(self._addr)
-	local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
-	local obj = asdu_object:new(types.C_IC_NA_1, asdu_addr:new(0), qoi)
+function master:make_init_done_resp(coi)
+	local asdu = {} -- FC=8 TI=70 COT=4 COI=2
+	local coi = ti_map.create_data('coi', coi or 20)
+	local cot = asdu_cot:new(types.COT_INITIALIZED) -- 4
+	local caoa = asdu_caoa:new(self._device:ADDR())
+	local unit = asdu_unit:new(types.M_EI_NA_1, cot, caoa)
+	local obj = asdu_object:new(types.M_EI_NA_1, asdu_addr:new(0), coi)
 	local asdu = asdu_asdu:new(false, unit, {obj})
-	local req = self:make_frame(f_ctrl.static.FC_DATA, asdu)
-	return self:request(req, true, true, 'Poll Station')
-end
-
-function master:_start_inner()
-	if not self._balanced then
-		return self:unbalance_start()
-	end
-	return self:balance_start()
-end
-
-function master:_start()
-	if self._start_proc_cancel then
-		self._start_proc_cancel()
-		self._start_proc_cancel = nil
-	end
-	if self._starting then
-		return
-	end
-
-	local start_proc
-	start_proc = function()
-		self._start_proc_cancel = nil
-		self._starting = true
-		logger.info('master '..self._addr..' start...')
-		local r, err = self:_start_inner()
-		self._starting = false
-		if r then
-			logger.info('master '..self._addr..' started')
-			self._inited = true
-		else
-			logger.error('master '..self._addr..' start failed')
-			self._start_proc_cancel = util.cancelable_timeout(5000, start_proc)
-		end
-	end
-
-	self._start_proc_cancel = util.cancelable_timeout(50, start_proc)
+	return self:make_frame(f_ctrl.static.FC_DATA_RESP, false, asdu)
 end
 
 function master:start()
 	self._channel:bind_linker_listen(self, {
 		on_connected = function()
-			self:_start()
+			self._inited = false
 		end,
 		on_disconnected = function()
 			self._inited = false
@@ -223,24 +142,6 @@ function master:start()
 	})
 
 	return true
-end
-
-function master:unbalance_start()
-	local r, err = self:req_link_status()
-	if not r then
-		logger.error('master '..self._addr..' request link status failed', err)
-		return nil, err
-	end
-	return self:req_link_reset()
-end
-
-function master:balance_start()
-	local r, err = self:req_link_status()
-	if not r then
-		logger.error('master '..self._addr..' request link status failed', err)
-		return nil, err
-	end
-	return self:req_link_reset()
 end
 
 function master:stop()
@@ -370,21 +271,21 @@ function master:on_inttergation()
 end
 
 function master:on_request_class1()
+	logger.debug('master '..self._device:ADDR()..' on request class 1 data')
 	local acd, asdu = self._device:poll_class1()
 	if asdu then
-		return self:make_frame(f_ctrl.static.FC_EM1_DATA, acd, asdu)
+		return self:make_frame(f_ctrl.static.FC_DATA_RESP, acd, asdu)
 	else
-		-- TODO: what should we return?
-		return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
+		return self:make_frame(f_ctrl.static.FC_DATA_NONE, false)
 	end
 end
 
 function master:on_request_class2()
 	local acd, asdu = self._device:poll_class2()
 	if asdu then
-		return self:make_frame(f_ctrl.static.FC_EM1_DATA, acd, asdu)
+		return self:make_frame(f_ctrl.static.FC_DATA_RESP, acd, asdu)
 	else
-		return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
+		return self:make_frame(f_ctrl.static.FC_DATA_NONE, false)
 	end
 end
 
@@ -437,6 +338,28 @@ function master:on_request(frame)
 
 	local ctrl = frame:CTRL()
 
+	if ctrl:FC() == f_ctrl.static.FC_LINK then
+		return self:make_frame(f_ctrl.static.FC_LINK_RESP, true)
+	end
+
+	if ctrl:FC() == f_ctrl.static.FC_RST_LINK then
+		self._connect_init = true
+		logger.info('master '..self._device:ADDR()..' request link reset ...')
+		return self:make_frame(f_ctrl.static.FC_RST_LINK, true)
+	end
+
+	if not self._inited then
+		if self._connect_init and ctrl:FC() == f_ctrl.static.FC_EM1_DATA then
+			self._connect_init = false
+			self._inited = true
+			logger.info('master '..self._device:ADDR()..' response initialization done ...')
+			return self:make_init_done_resp()
+		end
+		--- skip any more
+		return
+	end
+
+	--- 只有平衡模式才有FC_LINK_TEST
 	if ctrl:FC() == f_ctrl.static.FC_LINK_TEST then
 		return self:make_frame(f_ctrl.static.FC_S_OK, true)
 	end
@@ -447,54 +370,59 @@ function master:on_request(frame)
 			local unit = asdu:UNIT()
 			-- Spontaneous data
 			if unit:TI() == 100 then
-				if unit:COT():CUASE() == 6 then
-					-- Check TI=100
+				if unit:COT():CAUSE() == 6 then
+					-- Confirm Inttergation Command
 					return self:on_inttergation()
 				end
 			elseif unit:TI() == 102 or unit:TI() == 132 then
-				if unit:COT():CUASE() == 6 then
-					-- add class2 data
+				if unit:COT():CAUSE() == 6 then
+					-- TODO: add class2 data
 					return self:on_param_read()
 				end
 			elseif unit:TI() == 48 or unit:TI() == 136 then
-				if unit:COT():CUASE() == 6 then
+				if unit:COT():CAUSE() == 6 then
 					if unit:SE() == 1 then
-						-- add class2 data
+						-- TODO: add class2 data
 						return self:on_param_set_select()
 					else
-						-- add class2 data
+						-- TODO: add class2 data
 						return self:on_param_set_apply()
 					end
 				end
 			elseif unit:TI() == 103 then
-				if unit:COT():CUASE() == 6 then
+				if unit:COT():CAUSE() == 6 then
 					return self:on_time_sync()
 				end
 			elseif unit:TI() == 104 then
-				if unit:COT():CUASE() == 6 then
-					--- Add class2 data for test confirm
+				if unit:COT():CAUSE() == 6 then
+					-- TODO: Push an Class2 Data (TI=104 COT=7)
 					return self:on_test_command()
 				end
+			elseif unit:TI() == 105 then
+				if unit:COT():CAUSE() == 6 then
+					-- TODO: Push an Class2 Data (TI=105 COT=7)
+					return self:on_reset_process_command()
+				end
 			elseif unit:TI() == 45 then
-				if unit:COT():CUASE() == 6 then
+				if unit:COT():CAUSE() == 6 then
 					if unit:SE() == 1 then
 						return self:on_ctrl_select()
 					else
-						-- added to class1 (TI=45/46 COT=10, S/E=0)
+						-- TODO: added to class1 (TI=45/46 COT=10, S/E=0)
 						return self:on_ctrl_apply()
 					end
-				elseif unit:COT():CUASE() == 8 then
+				elseif unit:COT():CAUSE() == 8 then
 					return self:on_ctrl_abort()
 				end
 			elseif unit:TI() == 46 then
-				if unit:COT():CUASE() == 6 then
+				if unit:COT():CAUSE() == 6 then
 					if unit:SE() == 1 then
 						return self:on_ctrl_select()
 					else
-						-- added to class1 (TI=45/46 COT=10, S/E=0)
+						-- TODO: added to class1 (TI=45/46 COT=10, S/E=0)
 						return self:on_ctrl_apply()
 					end
-				elseif unit:COT():CUASE() == 8 then
+				elseif unit:COT():CAUSE() == 8 then
 					return self:on_ctrl_abort()
 				end
 			else

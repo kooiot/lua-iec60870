@@ -62,6 +62,8 @@ function channel:reset()
 end
 
 function channel:on_recv(raw)
+	-- local basexx = require 'basexx'
+	-- print('append', string.len(raw), basexx.to_hex(raw))
 	self._io_cb('IN', 'N/A', raw)
 	self._buf:append(raw)
 	if self._apdu_wait then
@@ -97,7 +99,7 @@ function channel:frame_process()
 		logger.debug('Try parse frame', self._buf:len())
 		frame, index, err = self:frame_parser(tostring(self._buf), 1)
 		if not frame then
-			logger.debug('Frame error: '..err, index)
+			logger.error('Frame error: '..err, index)
 			if index > 1 then
 				self._buf:pop(index - 1)
 				goto next_frame
@@ -139,6 +141,7 @@ function channel:frame_process()
 			local key = assert(resp:DUMP_KEY(self._linker))
 			self._io_cb('OUT', key, resp:to_hex())
 			-- Send Frame
+			logger.debug('Send frame', tostring(resp))
 			local r, err = self._linker:send(resp:to_hex())
 			-- Update last frame time
 			self._last_frame_tm = util.now()

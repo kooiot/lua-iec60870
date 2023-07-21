@@ -504,12 +504,15 @@ function slave:on_request(frame)
 				return true
 			end
 
-			local objs = asdu:OBJS()
-			for k, v in pairs(objs) do
-				-- print(k, v)
-				self._data_cb(v, asdu)
+			-- 总招数据
+			if unit:COT():CAUSE() == 20 then
+				local objs = asdu:OBJS()
+				for k, v in pairs(objs) do
+					-- print(k, v)
+					self._data_cb(v, asdu)
+				end
+				return true
 			end
-			return true
 		end
 
 		-- TODO: 

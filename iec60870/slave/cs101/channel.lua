@@ -30,11 +30,21 @@ function channel:match_request(req, resp)
 		return false, 'Address not matched'
 	end
 
-	return self._slave:match_request(req, resp)
+	-- Find addr
+	local master = self._slave:find_master(addr:ADDR())
+	if not master then
+		return false, 'Address not match any master'
+	end
+	return true
 end
 
 function channel:on_request(req)
-	return self._slave:on_request(req)
+	local addr = req:ADDR()
+	local master = self._slave:find_master(addr:ADDR())
+	if not master then
+		return false, 'Address not match any master'
+	end
+	return master:on_request(req)
 end
 
 return channel
