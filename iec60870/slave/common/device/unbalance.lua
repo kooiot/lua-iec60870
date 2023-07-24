@@ -12,12 +12,17 @@ local device = class('LUA_IEC60870_SLAVE_COMMON_DEVICE')
 
 function device:initialize(addr)
 	self._addr = addr
-	self._first_class1 = true
+	self:_reset_snapshot_list()
+end
+
+function device:_reset_snapshot_list()
+	-- reset snapshot list
 	self._data_snapshot = nil
 	self._data_snapshot_cur = 0
 end
 
 function device:on_disconnected()
+	self:_reset_snapshot_list()
 end
 
 function device:on_connected()
@@ -60,13 +65,12 @@ end
 
 -- TODO: should return asdu??
 function device:poll_class1()
-	-- If not first poll class1
-	if not self._first_class1 or not self._data_snapshot then
-		if self:has_spontaneous() then
-			-- TODO: is this same as data list?
-			return true, self:get_spontaneous()
-		end
+	if not self._data_snapshot then
 		return false, nil -- what happen here???
+	end
+
+	if self:has_spontaneous() then
+		return true, self:get_spontaneous()
 	end
 
 	if self._data_snapshot_cur == 0 then
@@ -80,23 +84,22 @@ function device:poll_class1()
 		return true, asdu_asdu:new(false, unit, {obj})
 	end
 
-	if #self._data_snapshot < self._data_snapshot_cur then
-		self._data_snapshot = nil
-		self._data_snapshot_cur = 0
-		self._first_class1 = false
-		-- For termination COT=10
-		local asdu = {} -- FC=8 TI=100 COT=10 QOI=20
-		local qoi = ti_map.create_data('qoi', qoi or 20)
-		local cot = asdu_cot:new(types.COT_ACTIVATION_TERMINATION) -- 10
-		local caoa = asdu_caoa:new(self._addr)
-		local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
-		local obj = asdu_object:new(types.C_IC_NA_1, asdu_addr:new(0), qoi)
-		return false, asdu_asdu:new(false, unit, {obj})
-	else
+	if #self._data_snapshot >= self._data_snapshot_cur then
 		local data_list = self._data_snapshot[self._data_snapshot_cur]
 		self._data_snapshot_cur = self._data_snapshot_cur + 1
 		return true, asdu
 	end
+
+	-- All snapshot list fired
+	self:_reset_snapshot_list()
+	-- For termination COT=10
+	local asdu = {} -- FC=8 TI=100 COT=10 QOI=20
+	local qoi = ti_map.create_data('qoi', qoi or 20)
+	local cot = asdu_cot:new(types.COT_ACTIVATION_TERMINATION) -- 10
+	local caoa = asdu_caoa:new(self._addr)
+	local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
+	local obj = asdu_object:new(types.C_IC_NA_1, asdu_addr:new(0), qoi)
+	return false, asdu_asdu:new(false, unit, {obj})
 end
 
 function device:poll_class2()

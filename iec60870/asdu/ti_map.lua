@@ -205,4 +205,9 @@ _M.create_data = function(name, ...)
 	return m:new(...)
 end
 
+_M.get_obj_name_list = function(ti, dir_m)
+	local t = assert(_M[ti], 'TI ['..ti..'] is not supported!')
+	return dir_m and t[_M.MOI_INDEX] or t[_M.OI_INDEX]
+end
+
 return _M
