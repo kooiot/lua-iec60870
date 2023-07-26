@@ -66,15 +66,13 @@ function helper:make_me_tb(addr, val, timestamp)
 	return self:make_object(types.M_ME_TA_1, addr, ti_map.create_data('SVA', val), ti_map.create_data('QDS'), t)
 end
 
-function helper:make_it_na(addr, val)
-	-- TODO: addr to sq????
-	local sq = addr
+-- SQ is the addr index
+function helper:make_it_na(addr, val, sq)
 	return self:make_object(types.M_IT_NA_1, addr, ti_map.create_data('BCR', val, sq))
 end
 
-function helper:make_it_ta(addr, val, timestamp)
+function helper:make_it_ta(addr, val, sq, timestamp)
 	local t = self:make_cp24time2a(timestamp)
-	local sq = addr
 	return self:make_object(types.M_IT_TA_1, addr, ti_map.create_data('BCR', val, sq), t)
 end
 

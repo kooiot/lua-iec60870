@@ -70,10 +70,6 @@ function device:poll_class1()
 		return false, nil -- what happen here???
 	end
 
-	if self:has_spontaneous() then
-		return true, self:get_spontaneous()
-	end
-
 	if self._data_snapshot_cur == 0 then
 		self._data_snapshot_cur = 1
 		local asdu = {} -- FC=8 TI=100 COT=7 QOI=20
@@ -105,14 +101,8 @@ end
 
 function device:poll_class2()
 	local data_c2 = self:get_class2_data()
-	local has_sp = self:has_spontaneous() 
 	if data_c2 then
 		return has_sp, data_c2
-	end
-
-	if has_sp then
-		-- return wether has more sp data and current sp data
-		return self:has_spontaneous(), self:get_spontaneous()
 	end
 
 	return false, nil

@@ -12,6 +12,7 @@ local device = class('LUA_IEC60870_SLAVE_COMMON_DEVICE')
 
 function device:initialize(addr)
 	self._addr = addr
+	self._first_class1 = true -- first class1 poll cannot be break by class2 data
 	self:_reset_snapshot_list()
 end
 
@@ -26,6 +27,7 @@ function device:on_disconnected()
 end
 
 function device:on_connected()
+	self:_reset_snapshot_list()
 end
 
 -- Return a list of different kind of data object list
@@ -66,10 +68,14 @@ end
 -- TODO: should return asdu??
 function device:poll_class1()
 	if not self._data_snapshot then
-		return false, nil -- what happen here???
+		if not self._first_class1 then
+			return false, nil -- what happen here???
+		end
+		local data_sp = assert(self:has_spontaneous())
+		return self:has_spontaneous(), data_sp
 	end
 
-	if self:has_spontaneous() then
+	if not self._first_class1 and self:has_spontaneous() then
 		return true, self:get_spontaneous()
 	end
 
@@ -90,6 +96,10 @@ function device:poll_class1()
 		return true, asdu
 	end
 
+	if self._first_class1 and self:has_spontaneous() then
+		return true, self:get_spontaneous()
+	end
+
 	-- All snapshot list fired
 	self:_reset_snapshot_list()
 	-- For termination COT=10
@@ -99,7 +109,15 @@ function device:poll_class1()
 	local caoa = asdu_caoa:new(self._addr)
 	local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
 	local obj = asdu_object:new(types.C_IC_NA_1, asdu_addr:new(0), qoi)
-	return false, asdu_asdu:new(false, unit, {obj})
+	local resp = asdu_asdu:new(false, unit, {obj})
+
+	--- If first_class1 is true then check whether has spontaneous data to keep class1 poll working ??? 
+	if self._first_class1 and self:has_spontaneous() then
+		return true, resp
+	end
+
+	-- This is last class1 response
+	return false, resp
 end
 
 function device:poll_class2()
@@ -111,7 +129,8 @@ function device:poll_class2()
 
 	if has_sp then
 		-- return wether has more sp data and current sp data
-		return self:has_spontaneous(), self:get_spontaneous()
+		local sp_data = self:get_spontaneous()
+		return self:has_spontaneous(), sp_data
 	end
 
 	return false, nil
