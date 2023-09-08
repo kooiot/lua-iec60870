@@ -58,12 +58,21 @@ function _M.make_me_ta(addr, val, timestamp)
 end
 
 function _M.make_me_nb(addr, val)
-	return _M.make_object(types.M_ME_NA_1, addr, ti_map.create_data('SVA', val), ti_map.create_data('QDS'))
+	return _M.make_object(types.M_ME_NB_1, addr, ti_map.create_data('SVA', val), ti_map.create_data('QDS'))
 end
 
 function _M.make_me_tb(addr, val, timestamp)
 	local t = _M.make_cp24time2a(timestamp)
-	return _M.make_object(types.M_ME_TA_1, addr, ti_map.create_data('SVA', val), ti_map.create_data('QDS'), t)
+	return _M.make_object(types.M_ME_TB_1, addr, ti_map.create_data('SVA', val), ti_map.create_data('QDS'), t)
+end
+
+function _M.make_me_nc(addr, val)
+	return _M.make_object(types.M_ME_NC_1, addr, ti_map.create_data('R32', val), ti_map.create_data('QDS'))
+end
+
+function _M.make_me_tc(addr, val, timestamp)
+	local t = _M.make_cp24time2a(timestamp)
+	return _M.make_object(types.M_ME_TC_1, addr, ti_map.create_data('R32', val), ti_map.create_data('QDS'), t)
 end
 
 -- SQ is the addr index

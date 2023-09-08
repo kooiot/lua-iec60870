@@ -7,11 +7,11 @@ local CAOA = require 'iec60870.asdu.caoa'
 
 local unit = base:subclass('LUA_IEC60870_FRAME_UNIT')
 
-function unit:initialize(ti, cot, caoa)
-	self._vsq = nil
+function unit:initialize(ti, cot, caoa, vsq)
 	self._ti = ti or 0
 	self._cot = cot or COT:new()
 	self._caoa = caoa or CAOA:new()
+	self._vsq = vsq or VSQ:new()
 end
 
 function unit:TI()
@@ -49,9 +49,6 @@ end
 function unit:from_hex(raw, index)
 	self._ti = string.byte(raw, index)
 	index = index + 1
-	if not self._vsq then
-		self._vsq = VSQ:new()
-	end
 	index = self._vsq:from_hex(raw, index)
 	index = self._cot:from_hex(raw, index)
 	index = self._caoa:from_hex(raw, index)

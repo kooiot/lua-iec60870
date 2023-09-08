@@ -48,7 +48,7 @@ SRC:	681a1a68080109040301014000000002402003000340a0000008409001007c16
 {"ft":"0x68","ctrl":{"dir":0,"acd":0,"fc":8,"name":"CTRL","prm":0,"dfc":0},"name":"FT1.2 Frame","asdu":{"name":"ASDU","unit":{"ti":9,"cot":{"cause":"Spontaneous","name":"Cause of Transfer"},"vsq":{"name":"Variable structure qualifier","count":4,"sq":0},"name":"Unit","caoa":{"addr":1,"name":"Common address of ASDU"}},"objs":[{"name":"ASDU Object","addr":{"addr":16385,"name":"ADDR"},"data":[{"val":0,"name":"NVA:"},{"bl":0,"iv":"Valid","ov":0,"name":"QDS","nt":0,"sb":0}]},{"name":"ASDU Object","addr":{"addr":16386,"name":"ADDR"},"data":[{"val":800,"name":"NVA:"},{"bl":0,"iv":"Valid","ov":0,"name":"QDS","nt":0,"sb":0}]},{"name":"ASDU Object","addr":{"addr":16387,"name":"ADDR"},"data":[{"val":160,"name":"NVA:"},{"bl":0,"iv":"Valid","ov":0,"name":"QDS","nt":0,"sb":0}]},{"name":"ASDU Object","addr":{"addr":16392,"name":"ADDR"},"data":[{"val":400,"name":"NVA:"},{"bl":0,"iv":"Valid","ov":0,"name":"QDS","nt":0,"sb":0}]}]},"addr":{"addr":1,"name":"ADDR"}}
 --]]
 function device:get_class2_data()
-	return nil
+	assert(false, 'Not implemented!')
 end
 
 function device:ADDR()

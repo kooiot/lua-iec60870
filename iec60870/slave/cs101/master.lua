@@ -356,7 +356,7 @@ function master:on_request(frame)
 			return self:make_init_done_resp()
 		end
 		--- skip any more
-		return
+		return nil, 'Not inited!'
 	end
 
 	--- 只有平衡模式才有FC_LINK_TEST

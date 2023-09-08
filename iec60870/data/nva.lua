@@ -13,9 +13,9 @@ end
 
 function data:to_hex()
 	if self._val < 0 then
-		string.pack('<I2', 0x7FFFF - self._val)
+		string.pack('<I2', (0x7FFF - self._val) & 0xFFFF)
 	else
-		return string.pack('<I2', self._val)
+		return string.pack('<I2', self._val & 0xFFFF)
 	end
 end
 
