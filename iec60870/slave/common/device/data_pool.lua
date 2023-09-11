@@ -125,12 +125,12 @@ function data_pool:get_spont_data()
 	if #self._spont_data <= self._max_count then
 		local data = self._spont_data
 		self._spont_data = {}
-		return self:_convert_data(data, ti)
+		return self:_convert_data(data, ti), ti
 	end
 
 	local data = table.move(self._spont_data, 1, self._max_count, 1, {})
 	self._spont_data = table.move(self._spont_data, self._max_count + 1, #self._spont_data, 1, {})
-	return self:_convert_data(data, ti)
+	return self:_convert_data(data, ti), ti
 end
 
 return data_pool

@@ -2,8 +2,13 @@
 --	e.g. make data snapshot, make spontenous data and so on
 local class = require 'middleclass'
 local util = require 'iec60870.common.util'
+local types = require 'iec60870.types'
 local common_helper = require 'iec60870.slave.common.helper'
 local data_pool = require 'iec60870.slave.common.device.data_pool'
+local asdu_unit = require 'iec60870.asdu.unit'
+local asdu_cot = require 'iec60870.asdu.cot'
+local asdu_caoa = require 'iec60870.asdu.caoa'
+local asdu_asdu = require 'iec60870.asdu.init'
 
 local device = class('LUA_IEC60870_SLAVE_COMMON_DEVICE')
 
@@ -138,7 +143,14 @@ function device:get_class2_data()
 	]]--
 	for k, v in pairs(self._inputs) do
 		if not v:IS_SP() and v:has_spont_data() then
-			return v:get_spont_data()
+			local data_list, ti = v:get_spont_data()
+
+			-- FC=8 TI=XX COT=10 QOI=20
+			local cot = asdu_cot:new(types.COT_SPONTANEOUS) -- 3
+			local caoa = asdu_caoa:new(self._addr)
+			local unit = asdu_unit:new(ti, cot, caoa)
+			local resp = asdu_asdu:new(false, unit, { data_list })
+			return resp
 		end
 	end
 
