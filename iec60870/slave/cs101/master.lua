@@ -4,6 +4,7 @@
 local base = require 'iec60870.slave.common.master'
 local types = require 'iec60870.types'
 local util = require 'iec60870.common.util'
+local helper = require 'iec60870.common.helper'
 local logger = require 'iec60870.common.logger'
 local ft12 = require 'iec60870.frame.ft12'
 local f_ctrl = require 'iec60870.frame.ctrl'
@@ -33,7 +34,7 @@ function master:initialize(device, channel, balanced, controlled)
 	self._confirm_timeout = 5000
 	self._terminate_timeout = 5000
 	self._closing = false
-	self._connect_init = false
+	self._link_reset = false
 
 	local si = {
 		'Master object created balanced:',
@@ -135,9 +136,11 @@ function master:start()
 	self._channel:bind_linker_listen(self, {
 		on_connected = function()
 			self._inited = false
+			self._device:on_connected()
 		end,
 		on_disconnected = function()
 			self._inited = false
+			self._device:on_disconnected()
 		end,
 	})
 
@@ -283,6 +286,7 @@ end
 function master:on_request_class2()
 	local acd, asdu = self._device:poll_class2()
 	if asdu then
+		print(acd, helper.tostring(asdu))
 		return self:make_frame(f_ctrl.static.FC_DATA_RESP, acd, asdu)
 	else
 		return self:make_frame(f_ctrl.static.FC_DATA_NONE, false)
@@ -339,20 +343,22 @@ function master:on_request(frame)
 	local ctrl = frame:CTRL()
 
 	if ctrl:FC() == f_ctrl.static.FC_LINK then
+		logger.debug('master '..self._device:ADDR()..' received request link ...')
 		return self:make_frame(f_ctrl.static.FC_LINK_RESP, true)
 	end
 
 	if ctrl:FC() == f_ctrl.static.FC_RST_LINK then
-		self._connect_init = true
-		logger.info('master '..self._device:ADDR()..' request link reset ...')
+		self._link_reset = true
+		self._device:link_reset()
+		logger.debug('master '..self._device:ADDR()..' received request link reset ...')
 		return self:make_frame(f_ctrl.static.FC_RST_LINK, true)
 	end
 
 	if not self._inited then
-		if self._connect_init and ctrl:FC() == f_ctrl.static.FC_EM1_DATA then
-			self._connect_init = false
+		if self._link_reset and ctrl:FC() == f_ctrl.static.FC_EM1_DATA then
+			self._link_reset = false
 			self._inited = true
-			logger.info('master '..self._device:ADDR()..' response initialization done ...')
+			logger.debug('master '..self._device:ADDR()..' response initialization done ...')
 			return self:make_init_done_resp()
 		end
 		--- skip any more
@@ -361,6 +367,7 @@ function master:on_request(frame)
 
 	--- 只有平衡模式才有FC_LINK_TEST
 	if ctrl:FC() == f_ctrl.static.FC_LINK_TEST then
+		logger.debug('master '..self._device:ADDR()..' received request link reset ...')
 		return self:make_frame(f_ctrl.static.FC_S_OK, true)
 	end
 
@@ -435,10 +442,12 @@ function master:on_request(frame)
 	end
 
 	if ctrl:FC() == f_ctrl.static.FC_EM1_DATA then
+		logger.debug('master '..self._device:ADDR()..' received read class 1 data request...')
 		return self:on_request_class1()
 	end
 
 	if ctrl:FC() == f_ctrl.static.FC_EM2_DATA then
+		logger.debug('master '..self._device:ADDR()..' received read class 2 data request...')
 		return self:on_request_class2()
 	end
 

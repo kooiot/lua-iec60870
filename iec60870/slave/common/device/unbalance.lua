@@ -23,11 +23,7 @@ function device:_reset_snapshot_list()
 	self._data_snapshot_cur = 0
 end
 
-function device:on_disconnected()
-	self:_reset_snapshot_list()
-end
-
-function device:on_connected()
+function device:link_reset()
 	self:_reset_snapshot_list()
 end
 
@@ -40,12 +36,15 @@ function device:make_snapshot()
 		return false, 'Snapshot already created!'
 	end
 	self._data_snapshot = self._device:get_snapshot()
+	local cjson = require 'cjson.safe'
+	print(cjson.encode(self._data_snapshot))
 	self._data_snapshot_cur = 0
 	return true
 end
 
 -- TODO: should return asdu??
 function device:poll_class1()
+	print('poll_class1')
 	if not self._data_snapshot then
 		print('not data snapshot')
 		if not self._first_class1 then
@@ -114,12 +113,29 @@ function device:poll_class2()
 	local data_c2 = self._device:get_class2_data()
 	local has_sp = self._device:has_spontaneous() 
 	if data_c2 then
+		print('unbalance.poll_class2 return class2 data')
+		-- RESP: FC=8 TI=100 COT=10 QOI=20
+		local qoi = ti_map.create_data('qoi', qoi or 20)
+		local cot = asdu_cot:new(types.COT_ACTIVATION_TERMINATION) -- 10
+		local caoa = asdu_caoa:new(self._addr)
+		local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
+		local obj = asdu_object:new(types.C_IC_NA_1, asdu_addr:new(0), qoi)
+		local resp = asdu_asdu:new(false, unit, {obj})
+
 		return has_sp, data_c2
 	end
 
 	if has_sp then
 		-- return wether has more sp data and current sp data
+		print('unbalance.poll_class2 return spontaneous data')
 		local sp_data = self._device:get_spontaneous()
+
+		-- RESP: FC=8 TI=100 COT=10 QOI=20
+		local cot = asdu_cot:new(types.COT_SPONTANEOUS) -- 3
+		local caoa = asdu_caoa:new(self._addr)
+		local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
+		local resp = asdu_asdu:new(false, unit, {obj})
+
 		return self._device:has_spontaneous(), sp_data
 	end
 

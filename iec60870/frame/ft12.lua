@@ -203,6 +203,7 @@ function frame:encode_fixed()
 end
 
 function frame:encode_flex()
+	assert(self._asdu and self._asdu.to_hex)
 	local asdu_raw = self._asdu:to_hex()
 	local body = self._ctrl:to_hex()
 	if not conf.FRAME_NO_ADDR then

@@ -22,11 +22,7 @@ function device:_reset_snapshot_list()
 	self._data_snapshot_cur = 0
 end
 
-function device:on_disconnected()
-	self:_reset_snapshot_list()
-end
-
-function device:on_connected()
+function device:link_reset()
 	self:_reset_snapshot_list()
 end
 

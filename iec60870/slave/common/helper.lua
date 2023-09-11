@@ -45,7 +45,7 @@ end
 
 function _M.make_dp_ta(addr, val, timestamp)
 	local t = _M.make_cp24time2a(timestamp)
-	return _M.make_object(types.M_DP_TA_1, addr, ti_map.create_data('DIQ', val))
+	return _M.make_object(types.M_DP_TA_1, addr, ti_map.create_data('DIQ', val), t)
 end
 
 function _M.make_me_na(addr, val)
