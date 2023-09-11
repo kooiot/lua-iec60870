@@ -14,7 +14,7 @@ local SP_DEF_VAL = false
 local ME_DEF_VAL = 0
 local IT_DEF_VAL = 0
 
-local types_maps = {
+local type_maps = {
 	--- SP
 	SP = { t.M_SP_NA_1, t.M_SP_TA_1, MAX_SP_COUNT, SP_DEF_VAL },
 	DP = { t.M_DP_NA_1, t.M_DP_TA_1, MAX_SP_COUNT, SP_DEF_VAL },
@@ -31,7 +31,7 @@ local types_maps = {
 function data_pool:initialize(device, type_name, inputs, default_val, max_count)
 	self._device = assert(device)
 	self._type_name = type_name
-	self._types = assert(types_map[type_name])
+	self._types = assert(type_maps[type_name])
 	assert(inputs)
 	self._inputs = {}
 	self._max_count = max_count or self._types[3]
@@ -66,7 +66,7 @@ function data_pool:_convert_data(data_list, ti)
 	assert(ti)
 	local ret = {}
 	for _, v in ipairs(data_list) do
-		local data, err = object_gen(ti, v.input, v.value)
+		local data, err = object_gen.generate(ti, v.input, v.value)
 		if data then
 			table.insert(ret, data)
 		else
