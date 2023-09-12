@@ -117,8 +117,10 @@ end
 function slave:make_ctrl(fc)
 	local fcv_en =  f_ctrl:need_fcv(fc) -- FCV required by function code
 	if fcv_en then
+		-- FCV: 1
 		return f_ctrl:new(self:DIR(), self:PRM(), self:FCB(), 1, fc)
 	else
+		-- FCV: 0
 		return f_ctrl:new(self:DIR(), self:PRM(), 0, 0, fc)
 	end
 end

@@ -97,13 +97,14 @@ function master:FCB_NEXT()
 end
 
 function master:make_ctrl(fc, acd)
-	if self._balanced or  acd == nil then
-		return f_ctrl:new(self:DIR(), self:PRM(), 0, 1, fc)
+	local dfc = 0 -- ready for next message
+	if self._balanced or acd == nil then
+		return f_ctrl:new(self:DIR(), self:PRM(), 0, dfc, fc)
 	else
 		if acd ~= 1 then
 			acd = acd and 1 or 0
 		end
-		return f_ctrl:new(self:DIR(), self:PRM(), acd, 1, fc)
+		return f_ctrl:new(self:DIR(), self:PRM(), acd, dfc, fc)
 	end
 end
 

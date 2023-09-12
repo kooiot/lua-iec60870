@@ -46,9 +46,9 @@ end
 
 -- TODO: should return asdu??
 function device:poll_class1()
-	print('poll_class1')
+	-- print('poll_class1')
 	if not self._data_snapshot then
-		print('not data snapshot')
+		-- print('not data snapshot')
 		if not self._first_class1 then
 			return false, nil -- what happen here???
 		end
@@ -57,7 +57,7 @@ function device:poll_class1()
 	end
 
 	if not self._first_class1 and self._device:has_spontaneous() then
-		print('has_spontaneous')
+		-- print('has_spontaneous')
 		return true, self._device:get_spontaneous()
 	end
 
@@ -76,7 +76,7 @@ function device:poll_class1()
 
 	if #self._data_snapshot >= self._data_snapshot_cur then
 		local data_list = self._data_snapshot[self._data_snapshot_cur]
-		print('slave.common.device.unbalance', self._data_snapshot_cur, #self._data_snapshot)
+		-- print('slave.common.device.unbalance', self._data_snapshot_cur, #self._data_snapshot)
 		self._data_snapshot_cur = self._data_snapshot_cur + 1
 
 		--[[ moved to device.lua
@@ -87,7 +87,7 @@ function device:poll_class1()
 		local resp = asdu_asdu:new(false, unit, data_list)
 		return true, resp
 		]]--
-		print('slave.common.device.unbalance', data_list)
+		-- print('slave.common.device.unbalance', data_list)
 		return true, data_list
 	end
 
@@ -127,7 +127,7 @@ function device:poll_class2()
 	local data_c2 = self._device:get_class2_data()
 	local has_sp = self._device:has_spontaneous() 
 	if data_c2 then
-		print('unbalance.poll_class2 return class2 data')
+		-- print('unbalance.poll_class2 return class2 data')
 		-- RESP: FC=8 TI=100 COT=10 QOI=20
 		local qoi = ti_map.create_data('qoi', qoi or 20)
 		local cot = asdu_cot:new(types.COT_ACTIVATION_TERMINATION) -- 10
@@ -141,7 +141,7 @@ function device:poll_class2()
 
 	if has_sp then
 		-- return wether has more sp data and current sp data
-		print('unbalance.poll_class2 return spontaneous data')
+		-- print('unbalance.poll_class2 return spontaneous data')
 		local sp_data = self._device:get_spontaneous()
 
 		-- RESP: FC=8 TI=100 COT=10 QOI=20

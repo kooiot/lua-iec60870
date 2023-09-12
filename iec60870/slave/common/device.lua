@@ -184,13 +184,13 @@ function device:get_class2_data()
 end
 
 function device:on_connected()
-	print('device.lua.on_connected')
+	-- print('device.lua.on_connected')
 	self._first_snapshot = false
 	self._connected = true
 end
 
 function device:on_disconnected()
-	print('device.lua.on_disconnected')
+	-- print('device.lua.on_disconnected')
 	self._first_snapshot = false
 	self._connected = false
 
