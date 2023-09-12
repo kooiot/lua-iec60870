@@ -286,7 +286,6 @@ end
 function master:on_request_class2()
 	local acd, asdu = self._device:poll_class2()
 	if asdu then
-		print(acd, helper.tostring(asdu))
 		return self:make_frame(f_ctrl.static.FC_DATA_RESP, acd, asdu)
 	else
 		return self:make_frame(f_ctrl.static.FC_DATA_NONE, false)

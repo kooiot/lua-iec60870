@@ -14,6 +14,7 @@ function device:initialize(device, addr)
 	self._device = device
 	self._addr = addr
 	self._first_class1 = true -- first class1 poll cannot be break by class2 data
+	self._snapshot_done = false
 	self:_reset_snapshot_list()
 end
 
@@ -24,6 +25,7 @@ function device:_reset_snapshot_list()
 end
 
 function device:link_reset()
+	self._snapshot_done = false
 	self:_reset_snapshot_list()
 end
 
@@ -36,8 +38,8 @@ function device:make_snapshot()
 		return false, 'Snapshot already created!'
 	end
 	self._data_snapshot = self._device:get_snapshot()
-	local cjson = require 'cjson.safe'
-	print(cjson.encode(self._data_snapshot))
+	-- local cjson = require 'cjson.safe'
+	-- print(cjson.encode(self._data_snapshot))
 	self._data_snapshot_cur = 0
 	return true
 end
@@ -74,15 +76,19 @@ function device:poll_class1()
 
 	if #self._data_snapshot >= self._data_snapshot_cur then
 		local data_list = self._data_snapshot[self._data_snapshot_cur]
-		print('slave.common.device.unbalance', self._data_snapshot_cur, #self._data_snapshot, #data_list)
+		print('slave.common.device.unbalance', self._data_snapshot_cur, #self._data_snapshot)
 		self._data_snapshot_cur = self._data_snapshot_cur + 1
 
+		--[[ moved to device.lua
 		-- FC=8 COT=20 SQ=1
 		local cot = asdu_cot:new(types.COT_INTERROGATED_BY_STATION) -- 20
 		local caoa = asdu_caoa:new(self._addr)
 		local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
 		local resp = asdu_asdu:new(false, unit, data_list)
 		return true, resp
+		]]--
+		print('slave.common.device.unbalance', data_list)
+		return true, data_list
 	end
 
 	if self._first_class1 and self._device:has_spontaneous() then
@@ -105,11 +111,19 @@ function device:poll_class1()
 		return true, resp
 	end
 
+	--- Set first_class1 false
+	self._first_class1 = false
+	self._snapshot_done = true
+
 	-- This is last class1 response
 	return false, resp
 end
 
 function device:poll_class2()
+	if not self._snapshot_done then
+		return false, nil
+	end
+
 	local data_c2 = self._device:get_class2_data()
 	local has_sp = self._device:has_spontaneous() 
 	if data_c2 then

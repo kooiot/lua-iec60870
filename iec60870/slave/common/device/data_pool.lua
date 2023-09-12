@@ -3,6 +3,7 @@
 local class = require 'middleclass'
 local t = require 'iec60870.types'
 local util = require 'iec60870.common.util'
+local helper = require 'iec60870.common.helper'
 local object_gen = require 'iec60870.asdu.object_gen'
 
 local data_pool = class('LUA_IEC60870_SLAVE_COMMON_DATA_POOL')
@@ -66,13 +67,15 @@ function data_pool:_convert_data(data_list, ti)
 	assert(ti)
 	local ret = {}
 	for _, v in ipairs(data_list) do
-		local data, err = object_gen.generate(ti, v.input, v.value)
+		local data, err = object_gen.generate(ti, v.input.addr, v.value.value, v.value.timestamp, v.value.quality)
 		if data then
+			-- print(helper.tostring(data))
 			table.insert(ret, data)
 		else
 			-- TODO: log
 		end
 	end
+	-- print(#ret)
 	return ret
 end
 
@@ -98,7 +101,7 @@ function data_pool:make_snapshot()
 	local snapshot = {}
 	local list = {}
 	for _, v in ipairs(self._inputs) do
-		if #list >= MAX_YX_COUNT then
+		if #list >= self._max_count then
 			table.insert(snapshot, self:_convert_data(list, self._types[1]))
 			list = {}
 		end

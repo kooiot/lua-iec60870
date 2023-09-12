@@ -2,6 +2,7 @@
 --	e.g. make data snapshot, make spontenous data and so on
 local class = require 'middleclass'
 local util = require 'iec60870.common.util'
+local helper = require 'iec60870.common.helper'
 local types = require 'iec60870.types'
 local common_helper = require 'iec60870.slave.common.helper'
 local data_pool = require 'iec60870.slave.common.device.data_pool'
@@ -15,6 +16,7 @@ local device = class('LUA_IEC60870_SLAVE_COMMON_DEVICE')
 -- Addr: number device addr
 -- Mode:'balance' or 'unbalance'
 function device:initialize(addr, mode, data_with_tm)
+	self._addr = addr
 	local device_m = require('iec60870.slave.common.device.'..assert(mode))
 	self._impl = device_m:new(self, addr)
 
@@ -27,7 +29,8 @@ function device:DATA_WITH_TM()
 end
 
 function device:ADDR()
-	return self._impl:ADDR()
+	return self._addr
+	-- return self._impl:ADDR()
 end
 
 function device:add_inputs(type_name, inputs, default_val, max_count_per_frame)
@@ -76,7 +79,17 @@ function device:get_snapshot()
 	local snapshot = {}
 	for k, v in pairs(self._inputs) do
 		local data_list = v:make_snapshot()
-		snapshot = table.move(data_list, 1, #data_list, #snapshot + 1, snapshot)
+		-- snapshot = table.move(data_list, 1, #data_list, #snapshot + 1, snapshot)
+
+		for _, data in ipairs(data_list) do
+			-- FC=8 COT=20 SQ=1
+			local cot = asdu_cot:new(types.COT_INTERROGATED_BY_STATION) -- 20
+			local caoa = asdu_caoa:new(self._addr)
+			local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
+			local resp = asdu_asdu:new(false, unit, data)
+			-- print(resp)
+			table.insert(snapshot, resp)
+		end
 	end
 
 	--[[
@@ -149,7 +162,8 @@ function device:get_class2_data()
 			local cot = asdu_cot:new(types.COT_SPONTANEOUS) -- 3
 			local caoa = asdu_caoa:new(self._addr)
 			local unit = asdu_unit:new(ti, cot, caoa)
-			local resp = asdu_asdu:new(false, unit, { data_list })
+			local resp = asdu_asdu:new(false, unit, data_list)
+			-- print('get_class2_data', helper.tostring(resp))
 			return resp
 		end
 	end
