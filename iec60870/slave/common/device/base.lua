@@ -26,4 +26,8 @@ function device:poll_class2()
 	assert(nil, 'Not implemented')
 end
 
+function device:on_run()
+	assert(nil, 'Not implemented')
+end
+
 return device

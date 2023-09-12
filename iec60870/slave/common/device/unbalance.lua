@@ -156,4 +156,7 @@ function device:poll_class2()
 	return false, nil
 end
 
+function device:on_run()
+end
+
 return device

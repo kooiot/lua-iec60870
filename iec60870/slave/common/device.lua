@@ -218,4 +218,8 @@ function device:poll_class2()
 	return self._impl:poll_class2()
 end
 
+function device:on_run()
+	return self._impl:on_run()
+end
+
 return device

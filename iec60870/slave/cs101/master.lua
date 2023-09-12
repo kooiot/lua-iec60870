@@ -50,7 +50,6 @@ function master:on_run(now_ms)
 		return
 	end
 
-	-- TODO:
 	self._device:on_run()
 	return
 end
