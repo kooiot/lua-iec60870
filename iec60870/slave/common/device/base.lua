@@ -10,11 +10,7 @@ function device:ADDR()
 	return self._addr
 end
 
-function device:on_disconnected()
-	assert(nil, 'Not implemented')
-end
-
-function device:on_connected()
+function device:link_reset()
 	assert(nil, 'Not implemented')
 end
 

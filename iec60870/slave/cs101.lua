@@ -70,6 +70,13 @@ function slave:start()
 	end
 	self._closing = false
 
+	for addr, slave in pairs(self._masters) do
+		local r, err = slave:start()
+		if not r then
+			return nil, err
+		end
+	end
+
 	util.fork(function()
 		while not self._closing do
 			self:do_next_master()

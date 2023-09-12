@@ -22,6 +22,9 @@ function device:initialize(addr, mode, data_with_tm)
 
 	self._data_with_tm = data_with_tm
 	self._inputs = {}
+
+	self._first_snapshot = false
+	self._connected = false
 end
 
 function device:DATA_WITH_TM()
@@ -31,6 +34,14 @@ end
 function device:ADDR()
 	return self._addr
 	-- return self._impl:ADDR()
+end
+
+function device:CONNECTED()
+	return self._connected
+end
+
+function device:SPONT_EN()
+	return self._connected and self._first_snapshot
 end
 
 function device:add_inputs(type_name, inputs, default_val, max_count_per_frame)
@@ -169,6 +180,22 @@ function device:get_class2_data()
 	end
 
 	return nil
+end
+
+function device:on_connected()
+	print('device.lua.on_connected')
+	self._first_snapshot = false
+	self._connected = true
+end
+
+function device:on_disconnected()
+	print('device.lua.on_disconnected')
+	self._first_snapshot = false
+	self._connected = false
+
+	for k, v in pairs(self._inputs) do
+		v:clear_spont_data()
+	end
 end
 
 function device:link_reset()

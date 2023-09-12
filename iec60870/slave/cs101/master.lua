@@ -135,10 +135,12 @@ end
 function master:start()
 	self._channel:bind_linker_listen(self, {
 		on_connected = function()
+			print('master.on_connected')
 			self._inited = false
 			self._device:on_connected()
 		end,
 		on_disconnected = function()
+			print('master.on_disconnected')
 			self._inited = false
 			self._device:on_disconnected()
 		end,

@@ -87,10 +87,12 @@ function data_pool:set_value(name, value, timestamp, quality)
 				timestamp = timestamp or util.now(),
 				quality = quality or 0
 			}
-			table.insert(self._spont_data, {
-				input = v.input,
-				value = v.value
-			})
+			if self._device:CONNECTED() then
+				table.insert(self._spont_data, {
+					input = v.input,
+					value = v.value
+				})
+			end
 		end
 	end
 end
@@ -134,6 +136,10 @@ function data_pool:get_spont_data()
 	local data = table.move(self._spont_data, 1, self._max_count, 1, {})
 	self._spont_data = table.move(self._spont_data, self._max_count + 1, #self._spont_data, 1, {})
 	return self:_convert_data(data, ti), ti
+end
+
+function data_pool:clear_spont_data()
+	self._spont_data = {}
 end
 
 return data_pool
