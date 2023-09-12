@@ -361,14 +361,22 @@ function master:on_request(frame)
 			logger.debug('master '..self._device:ADDR()..' response initialization done ...')
 			return self:make_init_done_resp()
 		end
-		--- skip any more
-		return nil, 'Not inited!'
+		--- For the one what does not request the initialization done messge
+		if self._link_reset then
+			self._link_reset = false
+			self._inited = true
+		end
+		-- Check inited again
+		if not self._inited then
+			--- skip any more
+			return nil, 'Not inited!'
+		end
 	end
 
 	--- 只有平衡模式才有FC_LINK_TEST
 	if ctrl:FC() == f_ctrl.static.FC_LINK_TEST then
 		logger.debug('master '..self._device:ADDR()..' received request link reset ...')
-		return self:make_frame(f_ctrl.static.FC_S_OK, true)
+		return self:make_frame(f_ctrl.static.FC_S_OK, false)
 	end
 
 	if ctrl:FC() == f_ctrl.static.FC_DATA then

@@ -28,11 +28,15 @@ end
 local vsq_from_objects = function(objs)
 	local count = #objs
 	if count <= 1 then
-		return asdu_vsq:new(count, 0)
+		return asdu_vsq:new(count, 1)
 	end
 	local addr = objs[1]:ADDR():ADDR()
+	local ti = objs[1]:TI()
 	for _, v in ipairs(objs) do
 		if addr ~= v:ADDR():ADDR() then
+			return asdu_vsq:new(count, 0)
+		end
+		if ti ~= v:TI() then
 			return asdu_vsq:new(count, 0)
 		end
 		addr = addr + 1

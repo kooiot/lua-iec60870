@@ -93,10 +93,11 @@ function device:get_snapshot()
 		-- snapshot = table.move(data_list, 1, #data_list, #snapshot + 1, snapshot)
 
 		for _, data in ipairs(data_list) do
+			local ti = data[1]:TI()
 			-- FC=8 COT=20 SQ=1
 			local cot = asdu_cot:new(types.COT_INTERROGATED_BY_STATION) -- 20
 			local caoa = asdu_caoa:new(self._addr)
-			local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
+			local unit = asdu_unit:new(ti, cot, caoa)
 			local resp = asdu_asdu:new(false, unit, data)
 			-- print(resp)
 			table.insert(snapshot, resp)

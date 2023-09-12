@@ -6,9 +6,9 @@ local slave = base:subclass('LUA_IEC60870_SLAVE_CS101')
 function slave:initialize(conf)
 	local conf = conf or {}
 	conf.COT_SIZE = conf.COT_SIZE or 1
-	conf.FRAME_ADDR_SIZE = conf.FRAME_ADDR_SIZE or 2
-	conf.ADDR_SIZE = conf.ADDR_SIZE or 2
-	conf.OBJ_ADDR_SIZE = conf.OBJ_ADDR_SIZE or 2
+	conf.FRAME_ADDR_SIZE = conf.FRAME_ADDR_SIZE or 2 -- Frame addr size
+	conf.ADDR_SIZE = conf.ADDR_SIZE or 2 -- ASDU common addr size
+	conf.OBJ_ADDR_SIZE = conf.OBJ_ADDR_SIZE or 2 -- ASDU object addr size
 	conf.MAX_RESEND = conf.MAX_RESEND or 3
 	conf.MAX_RESEND_TIME = conf.MAX_RESEND_TIME or 10
 	base.initialize(self, conf)

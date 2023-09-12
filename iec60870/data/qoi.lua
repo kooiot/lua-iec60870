@@ -1,5 +1,6 @@
 local base = require 'iec60870.frame.base'
 local types = require 'iec60870.types'
+local helper = require 'iec60870.common.helper'
 
 local data = base:subclass('LUA_IEC60870_DATA_QOI')
 
@@ -16,8 +17,10 @@ function data:to_hex()
 end
 
 function data:from_hex(raw, index)
-	 self._val = assert(string.byte(raw, index))
-	 return index + 1
+	--print(index, helper.to_hex(raw))
+	--print(string.byte(raw, index))
+	self._val = assert(string.byte(raw, index))
+	return index + 1
 end
 
 function data:__totable()
