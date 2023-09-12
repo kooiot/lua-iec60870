@@ -49,22 +49,26 @@ function object:to_hex(skip_addr)
 end
 
 function object:from_hex(addr, name_list, raw, index)
+	-- helper.dump_raw(raw, index, 'parse object')
 	-- print(index)
 	if not addr then
 		addr = asdu_addr:new()
 		index = addr:from_hex(raw, index)
 	end
 	-- print('ASDU.object.from_hex', addr)
+	-- helper.dump_raw(raw, index, 'parse object 2')
 
 	self._addr = assert(addr)
 	self._data = nil
 
 	if name_list == '' then
+		self._data = {}
 		return index
 	end
 	-- print(index)
 	-- helper.dump_raw(raw, 1, 'parse object')
 	if type(name_list) == 'string' then
+		-- helper.dump_raw(raw, index, 'parse '..name_list)
 		local data, index = ti_map.parse_obj(name_list, raw, index)
 		self._data = { data }
 		return index

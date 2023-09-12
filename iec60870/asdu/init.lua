@@ -8,7 +8,8 @@ local asdu_vsq = require 'iec60870.asdu.vsq'
 local asdu = base:subclass('LUA_IEC60870_FRAME_ASDU')
 
 function asdu:initialize(dir_m, unit, objects)
-	self._dir_m = assert(dir_m ~= nil, 'DIR_M is required!')
+	assert(dir_m ~= nil, 'DIR_M is required!')
+	self._dir_m = dir_m
 	self._unit = unit or asdu_unit:new()
 	self._objects = objects or {}
 end

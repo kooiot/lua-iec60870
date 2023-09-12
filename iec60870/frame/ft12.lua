@@ -162,6 +162,9 @@ function frame:decode_flex(raw, index)
 	end
 
 	local dir_m = self._ctrl:PRM() == frame_ctrl.PRM_S
+	--print(self._ctrl)
+	-- print(dir_m)
+
 	local asdu, index = asdu_parser(dir_m, string.sub(raw, index, s_start + len - 1))
 	if asdu then
 		self._asdu = asdu
