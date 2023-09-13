@@ -89,7 +89,7 @@ function channel:frame_process()
 	while not self._closing do
 		::next_frame::
 		--- Smaller size
-		local frame, r, index, raw
+		local frame, ok, r, index, raw
 		if self._buf:len() < self:frame_min() then
 			goto next_apdu
 		end
@@ -97,7 +97,7 @@ function channel:frame_process()
 		logger.debug('Try parse frame', self._buf:len())
 		frame, index, err = self:frame_parser(tostring(self._buf), 1)
 		if not frame then
-			logger.debug('Frame error: '..err, index)
+			logger.error('Frame error: '..err, index)
 			if index > 1 then
 				self._buf:pop(index - 1)
 				goto next_frame
@@ -110,7 +110,11 @@ function channel:frame_process()
 		self._buf:pop(index - 1)
 		logger.debug('Got frame size:'..string.len(raw))
 
-		r = frame:from_hex(raw, 1)
+		ok, r = pcall(frame.from_hex, frame, raw, 1)
+		if not ok then
+			logger.error('Parsing Frame Error', r)
+			goto next_frame
+		end
 		assert(r == index, 'Invalid frame parsed')
 
 		-- Update last frame time
