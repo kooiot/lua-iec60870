@@ -385,61 +385,60 @@ function master:on_request(frame)
 		if asdu then
 			local unit = asdu:UNIT()
 			-- Spontaneous data
-			if unit:TI() == 100 then
-				if unit:COT():CAUSE() == 6 then
+			if unit:TI() == types.C_IC_NA_1 then -- 100 interrogation command
+				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
 					-- Confirm Inttergation Command
-					return self:on_inttergation()
+					return self:on_inttergation(frame)
 				end
-			elseif unit:TI() == 102 or unit:TI() == 132 then
-				if unit:COT():CAUSE() == 6 then
-					-- TODO: add class2 data
-					return self:on_param_read()
+			elseif unit:TI() == types.C_RD_NA_1 or unit:TI() == types.C_RD_NA_2 then -- 102/132
+				if unit:COT():CAUSE() == types.COT_REQUEST then
+					return self:on_param_read(frame)
 				end
-			elseif unit:TI() == 48 or unit:TI() == 136 then
-				if unit:COT():CAUSE() == 6 then
+			elseif unit:TI() == types.C_SE_NA_1 or unit:TI() == types.C_SE_NA_2 then -- 48/136 set point command
+				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
 					if unit:SE() == 1 then
 						-- TODO: add class2 data
-						return self:on_param_set_select()
+						return self:on_param_set_select(frame)
 					else
 						-- TODO: add class2 data
-						return self:on_param_set_apply()
+						return self:on_param_set_apply(frame)
 					end
 				end
-			elseif unit:TI() == 103 then
-				if unit:COT():CAUSE() == 6 then
-					return self:on_time_sync()
+			elseif unit:TI() == types.C_CS_NA_1 then -- 103 clock sync command
+				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
+					return self:on_time_sync(frame)
 				end
-			elseif unit:TI() == 104 then
-				if unit:COT():CAUSE() == 6 then
+			elseif unit:TI() == types.C_TS_NA_1 then -- 104 test command
+				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
 					-- TODO: Push an Class2 Data (TI=104 COT=7)
-					return self:on_test_command()
+					return self:on_test_command(frame)
 				end
-			elseif unit:TI() == 105 then
-				if unit:COT():CAUSE() == 6 then
+			elseif unit:TI() == types.C_RP_NA_1 then -- 105 reset process command
+				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
 					-- TODO: Push an Class2 Data (TI=105 COT=7)
-					return self:on_reset_process_command()
+					return self:on_reset_process_command(frame)
 				end
-			elseif unit:TI() == 45 then
-				if unit:COT():CAUSE() == 6 then
+			elseif unit:TI() == types.C_SC_NA_1 then -- 45 single command
+				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
 					if unit:SE() == 1 then
-						return self:on_ctrl_select()
+						return self:on_ctrl_select(frame)
 					else
 						-- TODO: added to class1 (TI=45/46 COT=10, S/E=0)
-						return self:on_ctrl_apply()
+						return self:on_ctrl_apply(frame)
 					end
-				elseif unit:COT():CAUSE() == 8 then
-					return self:on_ctrl_abort()
+				elseif unit:COT():CAUSE() == types.COT_DEACTIVATION then -- 8
+					return self:on_ctrl_abort(frame)
 				end
-			elseif unit:TI() == 46 then
-				if unit:COT():CAUSE() == 6 then
+			elseif unit:TI() == types.C_DC_NA_1 then -- 46 double command
+				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
 					if unit:SE() == 1 then
-						return self:on_ctrl_select()
+						return self:on_ctrl_selectframe(frame)
 					else
 						-- TODO: added to class1 (TI=45/46 COT=10, S/E=0)
-						return self:on_ctrl_apply()
+						return self:on_ctrl_apply(frame)
 					end
-				elseif unit:COT():CAUSE() == 8 then
-					return self:on_ctrl_abort()
+				elseif unit:COT():CAUSE() == types.COT_DEACTIVATION then -- 8
+					return self:on_ctrl_abort(frame)
 				end
 			else
 				-- TODO:
@@ -452,15 +451,19 @@ function master:on_request(frame)
 
 	if ctrl:FC() == f_ctrl.static.FC_EM1_DATA then
 		logger.debug('master '..self._device:ADDR()..' received read class 1 data request...')
-		return self:on_request_class1()
+		return self:on_request_class1(frame)
 	end
 
 	if ctrl:FC() == f_ctrl.static.FC_EM2_DATA then
 		logger.debug('master '..self._device:ADDR()..' received read class 2 data request...')
-		return self:on_request_class2()
+		return self:on_request_class2(frame)
 	end
 
-	return nil, "Invalid response fc:"..ctrl:FC()
+	return nil, "Not supported Request FC:"..ctrl:FC()
+end
+
+function master:on_param_read()
+	return self:make_frame(f_ctrl.static.FC_S_OK, true)
 end
 
 return master
