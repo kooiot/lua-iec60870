@@ -29,6 +29,11 @@ function object:DATA()
 	return self._data
 end
 
+function object:GET(index, func)
+	local d = assert(self._data[index])
+	return d[func](d)
+end
+
 function object:TIME()
 	return ti_map.TM(self._ti, self._data)
 end

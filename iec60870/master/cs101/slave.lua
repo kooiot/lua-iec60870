@@ -165,7 +165,7 @@ end
 function slave:req_link_reset()
 	logger.info('slave '..self._addr..' request link reset...')
 	self._fcb = 1
-	self._last_poll = 0 -- for poll data 
+	self._last_poll = 0 -- for poll data
 	self._last_poll =  util.now() - self._poll_cycle
 	local frame = self:make_frame(f_ctrl.static.FC_RST_LINK)
 	local resp, err = self:request_inner(frame)

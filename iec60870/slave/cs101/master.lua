@@ -396,7 +396,12 @@ function master:on_request(frame)
 				end
 			elseif unit:TI() == types.C_SE_NA_1 or unit:TI() == types.C_SE_NA_2 then -- 48/136 set point command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
-					if unit:SE() == 1 then
+					local objs = asdu:OBJS()
+					if #objs == 0 then
+						return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
+					end
+					local nva = objs[1]
+					if nva:GET(2, 'SE') == 1 then
 						-- TODO: add class2 data
 						return self:on_param_set_select(frame)
 					else
@@ -420,7 +425,12 @@ function master:on_request(frame)
 				end
 			elseif unit:TI() == types.C_SC_NA_1 then -- 45 single command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
-					if unit:SE() == 1 then
+					local objs = asdu:OBJS()
+					if #objs == 0 then
+						return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
+					end
+					local sco = objs[1]
+					if sco:GET(1, 'SE') == 1 then
 						return self:on_ctrl_select(frame)
 					else
 						-- TODO: added to class1 (TI=45/46 COT=10, S/E=0)
@@ -431,7 +441,8 @@ function master:on_request(frame)
 				end
 			elseif unit:TI() == types.C_DC_NA_1 then -- 46 double command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
-					if unit:SE() == 1 then
+					local dco = objs[1]
+					if dco:GET(1, 'SE') == 1 then
 						return self:on_ctrl_selectframe(frame)
 					else
 						-- TODO: added to class1 (TI=45/46 COT=10, S/E=0)
