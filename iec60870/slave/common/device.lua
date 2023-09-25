@@ -223,4 +223,96 @@ function device:on_run()
 	return self._impl:on_run()
 end
 
+function device:on_param_read(master, frame)
+	return nil, 'Not implemented'
+end
+
+function device:on_param_set(master, frame)
+	local asdu = frame:ASDU()
+
+	local objs = asdu:OBJS()
+	if #objs == 0 then
+		return master:make_frame(f_ctrl.static.FC_S_FAIL, false)
+	end
+	local nva = objs[1]
+	if nva:GET(2, 'SE') == 1 then
+		-- TODO: add class2 data
+		return self:on_param_set_select(frame)
+	else
+		-- TODO: add class2 data
+		return self:on_param_set_apply(frame)
+	end
+
+	return nil, 'Not implemented'
+end
+
+function device:on_time_sync(master, frame)
+	return nil, 'Not implemented'
+end
+
+-- Push an Class2 Data (TI=104 COT=7)
+function device:on_test_command(master, frame)
+	return nil, 'Not implemented'
+end
+
+-- Push an Class2 Data (TI=105 COT=7)
+function device:on_reset_process_command(master, frame)
+	return nil, 'Not implemented'
+end
+
+function device:on_single_command(master, frame)
+	local asdu = frame:ASDU()
+
+	local objs = asdu:OBJS()
+	if #objs == 0 then
+		return master:make_frame(f_ctrl.static.FC_S_FAIL, false)
+	end
+	local sco = objs[1]
+	if sco:GET(1, 'SE') == 1 then
+		return self:on_ctrl_select(sco)
+	else
+		-- TODO: added to class1 (TI=45/46 COT=10, S/E=0)
+		return self:on_ctrl_apply(sco)
+	end
+end
+
+function device:on_ctrl_select(sco)
+	return nil, 'Not implemented'
+end
+
+function device:on_ctrl_apply(sco)
+	return nil, 'Not implemented'
+end
+
+function device:on_single_command_abort(master, frame)
+	return nil, 'Not implemented'
+end
+
+function device:on_double_command(master, frame)
+	local asdu = frame:ASDU()
+	local objs = asdu:OBJS()
+	if #objs == 0 then
+		return master:make_frame(f_ctrl.static.FC_S_FAIL, false)
+	end
+	local dco = objs[1]
+	if dco:GET(1, 'SE') == 1 then
+		return self:on_double_command_select(doc)
+	else
+		-- TODO: added to class1 (TI=45/46 COT=10, S/E=0)
+		return self:on_double_command_apply(doc)
+	end
+end
+
+function device:on_double_command_select(doc)
+	return nil, 'Not implemented'
+end
+
+function device:on_double_command_apply(doc)
+	return nil, 'Not implemented'
+end
+
+function device:on_double_command_abort(master, frame)
+	return nil, 'Not implemented'
+end
+
 return device

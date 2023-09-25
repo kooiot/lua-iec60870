@@ -396,6 +396,7 @@ function master:on_request(frame)
 				end
 			elseif unit:TI() == types.C_SE_NA_1 or unit:TI() == types.C_SE_NA_2 then -- 48/136 set point command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
+					--[[
 					local objs = asdu:OBJS()
 					if #objs == 0 then
 						return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
@@ -408,15 +409,17 @@ function master:on_request(frame)
 						-- TODO: add class2 data
 						return self:on_param_set_apply(frame)
 					end
+					]]--
+					return self._Device:on_param_set(self, frame)
 				end
 			elseif unit:TI() == types.C_CS_NA_1 then -- 103 clock sync command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
-					return self:on_time_sync(frame)
+					return self._device:on_time_sync(self, frame)
 				end
 			elseif unit:TI() == types.C_TS_NA_1 then -- 104 test command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
 					-- TODO: Push an Class2 Data (TI=104 COT=7)
-					return self:on_test_command(frame)
+					return self._device:on_test_command(self, frame)
 				end
 			elseif unit:TI() == types.C_RP_NA_1 then -- 105 reset process command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
@@ -425,6 +428,7 @@ function master:on_request(frame)
 				end
 			elseif unit:TI() == types.C_SC_NA_1 then -- 45 single command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
+					--[[
 					local objs = asdu:OBJS()
 					if #objs == 0 then
 						return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
@@ -436,11 +440,15 @@ function master:on_request(frame)
 						-- TODO: added to class1 (TI=45/46 COT=10, S/E=0)
 						return self:on_ctrl_apply(frame)
 					end
+					]]--
+					return self._device:on_single_command(self, frame)
 				elseif unit:COT():CAUSE() == types.COT_DEACTIVATION then -- 8
-					return self:on_ctrl_abort(frame)
+					return self._device:on_single_command_abort(self, frame)
 				end
 			elseif unit:TI() == types.C_DC_NA_1 then -- 46 double command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
+					--[[
+					local objs = asdu:OBJS()
 					local dco = objs[1]
 					if dco:GET(1, 'SE') == 1 then
 						return self:on_ctrl_selectframe(frame)
@@ -448,8 +456,10 @@ function master:on_request(frame)
 						-- TODO: added to class1 (TI=45/46 COT=10, S/E=0)
 						return self:on_ctrl_apply(frame)
 					end
+					]]--
+					return self:on_double_command(self, frame)
 				elseif unit:COT():CAUSE() == types.COT_DEACTIVATION then -- 8
-					return self:on_ctrl_abort(frame)
+					return self._device:on_double_command_abort(self, frame)
 				end
 			else
 				-- TODO:
