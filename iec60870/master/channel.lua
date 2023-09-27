@@ -124,7 +124,8 @@ function channel:frame_process()
 		-- logger.error('Request missing or timeout!', self._request, self._locked)
 
 		if self._request and self._locked then
-			if self:match_request(self._request, frame) then
+			local prm_chk = self._request:CTRL():PRM() ~= frame:CTRL():PRM()
+			if prm_chk and self:match_request(self._request, frame) then
 				self._result = { frame }
 				logger.debug('Got response for request')
 

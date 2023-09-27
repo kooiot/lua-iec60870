@@ -37,7 +37,7 @@ function device:make_snapshot()
 	if self._data_snapshot then
 		return false, 'Snapshot already created!'
 	end
-	self._data_snapshot = self._device:get_snapshot()
+	self._data_snapshot = self._device:_make_snapshot()
 	-- local cjson = require 'cjson.safe'
 	-- print(cjson.encode(self._data_snapshot))
 	self._data_snapshot_cur = 0
@@ -66,7 +66,7 @@ function device:poll_class1()
 	if self._data_snapshot_cur == 0 then
 		self._data_snapshot_cur = 1
 		-- FC=8 TI=100 COT=7 QOI=20
-		local cot = asdu_cot:new(types.COT_ACTIVATION) -- 6
+		local cot = asdu_cot:new(types.COT_ACTIVATION_CON) -- 7
 		local caoa = asdu_caoa:new(self._addr)
 		local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
 		local qoi = ti_map.create_data('qoi', qoi or 20)

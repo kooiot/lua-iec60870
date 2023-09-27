@@ -5,6 +5,8 @@ local sum = require 'hashings.sum'
 local cjson = require 'cjson.safe'
 local basexx = require 'basexx'
 
+local PRING_HEX_IN_TABLE = false
+
 function _M.sum(data)
 	return sum:new(data):digest()
 end
@@ -14,6 +16,11 @@ function _M.tostring(data)
 		return '<EMPTY>'
 	end
 	if type(data) == 'table' and data.__totable then
+		if PRING_HEX_IN_TABLE and data.to_hex then	
+			local t = data:__totable()
+			t._HEX = basexx.to_hex(data:to_hex())
+			return assert(cjson.encode(t))
+		end
 		return assert(cjson.encode(data:__totable()))
 	end
 	return assert(cjson.encode(data))
@@ -32,6 +39,11 @@ function _M.totable(data)
 		return nil
 	end
 	if type(data) == 'table' and data.__totable then
+		if PRING_HEX_IN_TABLE and data.to_hex then	
+			local t = data:__totable()
+			t._HEX = basexx.to_hex(data:to_hex())
+			return check_table(t)
+		end
 		return check_table(data:__totable())
 	end
 	return check_table(data)

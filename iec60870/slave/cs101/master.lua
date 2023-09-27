@@ -19,11 +19,11 @@ local asdu_asdu = require 'iec60870.asdu.init'
 
 local master = base:subclass('LUA_IEC60870_SLAVE_CS101_MASTER')
 
-function master:initialize(device, channel, balanced, controlled)
+function master:initialize(device, channel, mode, controlled)
 	base.initialize(self)
 	self._device = assert(device, 'Device is required')
 	self._channel = assert(channel, 'Channel is required')
-	self._balanced = balanced
+	self._balance = string.lower(mode) ~= 'unbalance' and true or false
 	self._controlled = controlled
 	self._fcb = 1
 	self._retry = 0
@@ -37,8 +37,8 @@ function master:initialize(device, channel, balanced, controlled)
 	self._link_reset = false
 
 	local si = {
-		'Master object created balanced:',
-		self._balanced and 'TRUE' or 'FALSE',
+		'Master object created balance:',
+		self._balance and 'TRUE' or 'FALSE',
 		' controlled:',
 		self._controlled and 'TRUE' or 'FALSE',
 	}
@@ -54,11 +54,15 @@ function master:on_run(now_ms)
 	return
 end
 
+function master:channel()
+	return self._channel
+end
+
 function master:make_data_frame(asdu)
 	return self:make_frame(f_ctrl.static.FC_DATA, asdu)
 end
 
-function master:make_frame(fc, acd, asdu, ft_type)
+function master:make_frame(fc, acd, asdu, ft_type, prm)
 	local ftt = ft_type
 	if not ftt then
 		if asdu then
@@ -67,7 +71,7 @@ function master:make_frame(fc, acd, asdu, ft_type)
 			ftt = ft12.static.FT_FIXED
 		end
 	end
-	local ctrl = self:make_ctrl(fc, acd)
+	local ctrl = self:make_ctrl(fc, acd, prm)
 	local addr = f_addr:new(self._device:ADDR())
 	return ft12:new(ftt, ctrl, addr, asdu)
 end
@@ -77,7 +81,7 @@ function master:ADDR()
 end
 
 function master:DIR()
-	if not self._balanced then
+	if not self._balance then
 		return f_ctrl.static.DIR_R
 	end
 	return self._controlled and f_ctrl.static.DIR_S or f_ctrl.static.DIR_M
@@ -96,22 +100,28 @@ function master:FCB_NEXT()
 	self._fcb = (self._fcb + 1) % 2 
 end
 
-function master:make_ctrl(fc, acd)
+function master:make_ctrl(fc, acd, prm)
 	local dfc = 0 -- ready for next message
-	if self._balanced or acd == nil then
-		return f_ctrl:new(self:DIR(), self:PRM(), 0, dfc, fc)
+	if prm == nil then
+		prm = self:PRM()
+	end
+	if type(prm) == 'boolean' then
+		prm = prm and 1 or 0
+	end
+	if self._balance or acd == nil then
+		return f_ctrl:new(self:DIR(), prm, 0, dfc, fc)
 	else
-		if acd ~= 1 then
+		if type(prm) == 'boolean' then
 			acd = acd and 1 or 0
 		end
-		return f_ctrl:new(self:DIR(), self:PRM(), acd, dfc, fc)
+		return f_ctrl:new(self:DIR(), prm, acd, dfc, fc)
 	end
 end
 
 function master:check_fcb(req)
-	local ctrl = resp:CTRL()
+	local ctrl = req:CTRL()
 	if ctrl:ACD() == 1 then
-		if self._balanced then
+		if self._balance then
 			assert(false, 'Balance mode cannot use ACD???')
 		end
 		if ctrl:FCB() == self._fcb then
@@ -133,14 +143,16 @@ function master:make_init_done_resp(coi)
 end
 
 function master:start()
+	self._device:bind_master(self)
+
 	self._channel:bind_linker_listen(self, {
 		on_connected = function()
-			print('master.on_connected')
+			-- print('master.on_connected')
 			self._inited = false
 			self._device:on_connected()
 		end,
 		on_disconnected = function()
-			print('master.on_disconnected')
+			-- print('master.on_disconnected')
 			self._inited = false
 			self._device:on_disconnected()
 		end,
@@ -318,6 +330,13 @@ function master:do_request_check(frame)
 		logger.debug("do_request_check no request")
 		return false
 	end
+	local ctrl = frame:CTRL()
+	-- print(ctrl, self._balance)
+	if self._balance and ctrl:PRM() == 1 then
+		-- if balance mode then check whether this is response or not
+		return false
+	end
+
 	local req = assert(self._request.req)
 
 	local asdu = frame:ASDU()
@@ -345,13 +364,21 @@ function master:on_request(frame)
 
 	if ctrl:FC() == f_ctrl.static.FC_LINK then
 		logger.debug('master '..self._device:ADDR()..' received request link ...')
+		if not self._balance then
+			logger.error('master '..self._device:ADDR()..' is unbalance mode! cannot handle link request')
+			return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
+		end
 		return self:make_frame(f_ctrl.static.FC_LINK_RESP, true)
 	end
 
 	if ctrl:FC() == f_ctrl.static.FC_RST_LINK then
-		self._link_reset = true
-		self._device:link_reset()
 		logger.debug('master '..self._device:ADDR()..' received request link reset ...')
+		if not self._balance then
+			logger.error('master '..self._device:ADDR()..' is unbalance mode! cannot handle link reset request')
+			return self:make_frame(f_ctrl.static.FC_S_FAIL, false)
+		end
+		self._link_reset = true
+		self._device:link_reset(self)
 		return self:make_frame(f_ctrl.static.FC_RST_LINK, true)
 	end
 
@@ -376,7 +403,7 @@ function master:on_request(frame)
 
 	--- 只有平衡模式才有FC_LINK_TEST
 	if ctrl:FC() == f_ctrl.static.FC_LINK_TEST then
-		logger.debug('master '..self._device:ADDR()..' received request link reset ...')
+		logger.debug('master '..self._device:ADDR()..' received request link test ...')
 		return self:make_frame(f_ctrl.static.FC_S_OK, false)
 	end
 
@@ -410,16 +437,16 @@ function master:on_request(frame)
 						return self:on_param_set_apply(frame)
 					end
 					]]--
-					return self._Device:on_param_set(self, frame)
+					return self._device:on_param_set(frame)
 				end
 			elseif unit:TI() == types.C_CS_NA_1 then -- 103 clock sync command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
-					return self._device:on_time_sync(self, frame)
+					return self._device:on_time_sync(frame)
 				end
 			elseif unit:TI() == types.C_TS_NA_1 then -- 104 test command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
 					-- TODO: Push an Class2 Data (TI=104 COT=7)
-					return self._device:on_test_command(self, frame)
+					return self._device:on_test_command(frame)
 				end
 			elseif unit:TI() == types.C_RP_NA_1 then -- 105 reset process command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
@@ -441,9 +468,9 @@ function master:on_request(frame)
 						return self:on_ctrl_apply(frame)
 					end
 					]]--
-					return self._device:on_single_command(self, frame)
+					return self._device:on_single_command(frame)
 				elseif unit:COT():CAUSE() == types.COT_DEACTIVATION then -- 8
-					return self._device:on_single_command_abort(self, frame)
+					return self._device:on_single_command_abort(frame)
 				end
 			elseif unit:TI() == types.C_DC_NA_1 then -- 46 double command
 				if unit:COT():CAUSE() == types.COT_ACTIVATION then -- 6
@@ -457,9 +484,9 @@ function master:on_request(frame)
 						return self:on_ctrl_apply(frame)
 					end
 					]]--
-					return self:on_double_command(self, frame)
+					return self:on_double_command(frame)
 				elseif unit:COT():CAUSE() == types.COT_DEACTIVATION then -- 8
-					return self._device:on_double_command_abort(self, frame)
+					return self._device:on_double_command_abort(frame)
 				end
 			else
 				-- TODO:

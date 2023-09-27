@@ -1,4 +1,3 @@
-local helper = require 'iec60870.common.helper'
 local base = require 'iec60870.frame.base'
 local conf = require 'iec60870.conf'
 
@@ -25,7 +24,6 @@ function addr:to_hex()
 end
 
 function addr:from_hex(raw, index)
-	-- helper.dump_raw(raw, index, 'Addr.from_hex')
 	self._addr, index = string.unpack('<I'..conf.OBJ_ADDR_SIZE, raw, index)
 	return index
 end

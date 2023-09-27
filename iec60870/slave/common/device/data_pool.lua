@@ -87,11 +87,12 @@ function data_pool:set_value(name, value, timestamp, quality)
 				timestamp = timestamp or util.now(),
 				quality = quality or 0
 			}
-			if self._device:CONNECTED() then
+			if self._device:SPONT_EN() then
 				table.insert(self._spont_data, {
 					input = v.input,
 					value = v.value
 				})
+				-- print(#self._spont_data)
 			end
 		end
 	end

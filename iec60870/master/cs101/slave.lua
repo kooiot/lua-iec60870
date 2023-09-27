@@ -15,12 +15,12 @@ local asdu_asdu = require 'iec60870.asdu.init'
 
 local slave = base:subclass('LUA_IEC60870_MASTER_CS101_SLAVE')
 
-function slave:initialize(master, channel, addr, balance, controlled)
+function slave:initialize(master, channel, addr, mode, controlled)
 	base.initialize(self)
 	self._master = assert(master, 'Master is required')
 	self._channel = assert(channel, 'Channel is required')
 	self._addr = assert(addr, 'Address is required')
-	self._balance = balance
+	self._balance = string.lower(mode) ~= 'unbalance' and true or false 
 	self._controlled = controlled
 	self._fcb = 1
 	self._retry = 0

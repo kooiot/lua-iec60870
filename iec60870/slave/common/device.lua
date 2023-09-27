@@ -5,18 +5,19 @@ local util = require 'iec60870.common.util'
 local helper = require 'iec60870.common.helper'
 local types = require 'iec60870.types'
 local common_helper = require 'iec60870.slave.common.helper'
+local base = require 'iec60870.slave.common.device.base'
 local data_pool = require 'iec60870.slave.common.device.data_pool'
 local asdu_unit = require 'iec60870.asdu.unit'
 local asdu_cot = require 'iec60870.asdu.cot'
 local asdu_caoa = require 'iec60870.asdu.caoa'
 local asdu_asdu = require 'iec60870.asdu.init'
 
-local device = class('LUA_IEC60870_SLAVE_COMMON_DEVICE')
+local device = base:subclass('LUA_IEC60870_SLAVE_COMMON_DEVICE')
 
 -- Addr: number device addr
 -- Mode:'balance' or 'unbalance'
 function device:initialize(addr, mode, data_with_tm)
-	self._addr = addr
+	base.initialize(self, addr)
 	local device_m = require('iec60870.slave.common.device.'..assert(mode))
 	self._impl = device_m:new(self, addr)
 
@@ -29,11 +30,6 @@ end
 
 function device:DATA_WITH_TM()
 	return self._data_with_tm
-end
-
-function device:ADDR()
-	return self._addr
-	-- return self._impl:ADDR()
 end
 
 function device:CONNECTED()
@@ -85,8 +81,8 @@ function device:add_it_data(inputs)
 end
 ]]--
 
--- Return a list of different kind of data object list
-function device:get_snapshot()
+-- Return a list of different kind of data object list of data pools
+function device:_make_snapshot()
 	local snapshot = {}
 	for k, v in pairs(self._inputs) do
 		local data_list = v:make_snapshot()
@@ -94,7 +90,7 @@ function device:get_snapshot()
 
 		for _, data in ipairs(data_list) do
 			local ti = data[1]:TI()
-			-- FC=8 COT=20 SQ=1
+			-- COT=20 SQ=1
 			local cot = asdu_cot:new(types.COT_INTERROGATED_BY_STATION) -- 20
 			local caoa = asdu_caoa:new(self._addr)
 			local unit = asdu_unit:new(ti, cot, caoa)
@@ -144,7 +140,13 @@ function device:get_spontaneous()
 	]]--
 	for k, v in pairs(self._inputs) do
 		if v:IS_SP() and v:has_spont_data() then
-			return v:get_spont_data()
+			local data_list, ti = v:get_spont_data()
+
+			local cot = asdu_cot:new(types.COT_SPONTANEOUS) -- 3
+			local caoa = asdu_caoa:new(self._addr)
+			local unit = asdu_unit:new(ti, cot, caoa)
+			local resp = asdu_asdu:new(false, unit, data_list)
+			return resp
 		end
 	end
 
@@ -199,6 +201,14 @@ function device:on_disconnected()
 	end
 end
 
+function device:bind_master(master)
+	base.bind_master(self, master)
+end
+
+function device:master()
+	return self._master
+end
+
 function device:link_reset()
 	self._first_snapshot = false
 	return self._impl:link_reset()
@@ -223,11 +233,11 @@ function device:on_run()
 	return self._impl:on_run()
 end
 
-function device:on_param_read(master, frame)
+function device:on_param_read(frame)
 	return nil, 'Not implemented'
 end
 
-function device:on_param_set(master, frame)
+function device:on_param_set(frame)
 	local asdu = frame:ASDU()
 
 	local objs = asdu:OBJS()
@@ -246,21 +256,21 @@ function device:on_param_set(master, frame)
 	return nil, 'Not implemented'
 end
 
-function device:on_time_sync(master, frame)
+function device:on_time_sync(frame)
 	return nil, 'Not implemented'
 end
 
 -- Push an Class2 Data (TI=104 COT=7)
-function device:on_test_command(master, frame)
+function device:on_test_command(frame)
 	return nil, 'Not implemented'
 end
 
 -- Push an Class2 Data (TI=105 COT=7)
-function device:on_reset_process_command(master, frame)
+function device:on_reset_process_command(frame)
 	return nil, 'Not implemented'
 end
 
-function device:on_single_command(master, frame)
+function device:on_single_command(frame)
 	local asdu = frame:ASDU()
 
 	local objs = asdu:OBJS()
@@ -284,11 +294,11 @@ function device:on_ctrl_apply(sco)
 	return nil, 'Not implemented'
 end
 
-function device:on_single_command_abort(master, frame)
+function device:on_single_command_abort(frame)
 	return nil, 'Not implemented'
 end
 
-function device:on_double_command(master, frame)
+function device:on_double_command(frame)
 	local asdu = frame:ASDU()
 	local objs = asdu:OBJS()
 	if #objs == 0 then
@@ -311,7 +321,7 @@ function device:on_double_command_apply(doc)
 	return nil, 'Not implemented'
 end
 
-function device:on_double_command_abort(master, frame)
+function device:on_double_command_abort(frame)
 	return nil, 'Not implemented'
 end
 
