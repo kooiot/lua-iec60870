@@ -13,9 +13,9 @@ local asdu_asdu = require 'iec60870.asdu.init'
 
 local device = class('LUA_IEC60870_SLAVE_COMMON_DEVICE_BALANCE')
 
-function device:initialize(device, addr)
+function device:initialize(device, caoa_addr)
 	self._device = device
-	self._addr = addr
+	self._addr = caoa_addr
 	self._first_class1 = true -- first class1 poll cannot be break by class2 data
 	self._snapshot_done = false
 	self:_reset_snapshot_list()
@@ -30,22 +30,10 @@ end
 function device:link_reset()
 	self._snapshot_done = false
 	self:_reset_snapshot_list()
-	util.timeout(200, function()
-		--- self:_balance_start()
-	end)
 end
 
 function device:ADDR()
 	return self._addr
-end
-
-function device:_balance_start()
-	local r, err = self:req_link_status()
-	if not r then
-		logger.error('device '..self._addr..' request link status failed', err)
-		return nil, err
-	end
-	return self:req_link_reset()
 end
 
 function device:make_frame(...)
@@ -54,39 +42,6 @@ end
 
 function device:request(...)
 	return self._device:master():channel():request(...)
-end
-
-function device:req_link_status()
-	logger.info('device '..self._addr..' request link status...')
-	local frame = self:make_frame(f_ctrl.static.FC_LINK, nil, nil, nil, true)
-	local resp, err = self:request(frame)
-	if not resp then
-		return nil, err
-	end
-
-	local ctrl = resp:CTRL()
-	if ctrl:FC() ~= f_ctrl.static.FC_LINK_RESP then
-		return nil, "Invalid response fc:"..ctrl:FC()
-	end
-	return true
-end
-
-function device:req_link_reset()
-	logger.info('device '..self._addr..' request link reset...')
-	self._fcb = 1
-	self._last_poll = 0 -- for poll data
-	self._last_poll =  util.now() - self._poll_cycle
-	local frame = self:make_frame(f_ctrl.static.FC_RST_LINK, nil, nil, nil, true)
-	local resp, err = self:request(frame)
-	if not resp then
-		return nil, err
-	end
-
-	local ctrl = resp:CTRL()
-	if ctrl:FC() ~= f_ctrl.static.FC_S_OK then
-		return nil, "Invalid response fc:"..ctrl:FC()
-	end
-	return true
 end
 
 function device:make_snapshot()
@@ -102,7 +57,7 @@ end
 
 -- TODO: should return asdu??
 function device:poll_class1()
-	-- print('poll_class1')
+	print('poll_class1')
 	if not self._data_snapshot then
 		return false
 	end
@@ -120,7 +75,7 @@ function device:poll_class1()
 
 	if #self._data_snapshot >= self._data_snapshot_cur then
 		local data_list = self._data_snapshot[self._data_snapshot_cur]
-		-- print('device.common.device.unbalance', self._data_snapshot_cur, #self._data_snapshot)
+		print('device.common.device.unbalance', self._data_snapshot_cur, #self._data_snapshot)
 		self._data_snapshot_cur = self._data_snapshot_cur + 1
 		return true, asdu
 	end
@@ -154,6 +109,7 @@ function device:on_run()
 		local req = self:make_frame(f_ctrl.static.FC_DATA, nil, data_c1, nil, true)
 		local resp = self:request(req)
 		print('class1.resp', resp)
+		return
 	end
 
 	if self._device:has_spontaneous() then
@@ -165,6 +121,7 @@ function device:on_run()
 		local soe = data_sp:SOE()
 		-- self:send(soe)
 		-- Wait for confirmation
+		return
 	end
 	local has_c2, data_c2 = self:poll_class2()
 	if has_c2 then
@@ -172,6 +129,7 @@ function device:on_run()
 		local req = self:make_frame(f_ctrl.static.FC_DATA, nil, data_c2, nil, true)
 		local resp = self:request(req)
 		print('class2.resp', resp)
+		return
 	end
 end
 

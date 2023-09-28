@@ -16,10 +16,10 @@ local device = base:subclass('LUA_IEC60870_SLAVE_COMMON_DEVICE')
 
 -- Addr: number device addr
 -- Mode:'balance' or 'unbalance'
-function device:initialize(addr, mode, data_with_tm)
-	base.initialize(self, addr)
+function device:initialize(caoa, mode, data_with_tm)
+	base.initialize(self, caoa)
 	local device_m = require('iec60870.slave.common.device.'..assert(mode))
-	self._impl = device_m:new(self, addr)
+	self._impl = device_m:new(self, caoa)
 
 	self._data_with_tm = data_with_tm
 	self._inputs = {}

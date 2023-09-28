@@ -32,6 +32,8 @@ function slave:initialize(master, channel, addr, mode, controlled)
 	self._terminate_timeout = 5000
 	self._closing = false
 
+	self._caoa = nil
+
 	local si = {
 		'Slave created balance:',
 		self._balance and 'TRUE' or 'FALSE',
@@ -41,12 +43,38 @@ function slave:initialize(master, channel, addr, mode, controlled)
 	logger.debug(table.concat(si))
 end
 
+function slave:set_caoa(addr)
+	assert(self._caoa == nil)
+	self._caoa = caoa
+end
+
+function slave:add_caoa(addr)
+	if type(self._caoa) == 'table' then
+		table.insert(self._caoa, addr)
+	else
+		self._caoa = { self._caoa, addr }
+	end
+end
+
 function slave:set_poll_cycle(ms)
 	self._poll_cycle = ms
 end
 
 function slave:set_data_cb(cb)
 	self._data_cb = cb or function() end
+end
+
+function slave:poll_stations()
+	if type(self._caoa) ~= 'table' then
+		return self:send_poll_station(self._caoa)
+	end
+	for _, v in ipairs(self._caoa) do
+		local r, err = self:send_poll_station(v) 
+		if not r then
+			return nil, err
+		end
+	end
+	return true
 end
 
 function slave:on_run(now_ms)
@@ -63,7 +91,7 @@ function slave:on_run(now_ms)
 	if now_ms > next_poll_ms then
 		logger.debug('Send poll station ...')
 		-- Send poll station
-		local r, err = self:send_poll_station() 
+		local r, err = self:poll_stations() 
 		if r then
 			self._last_poll = next_poll_ms
 		else
@@ -185,7 +213,7 @@ function slave:fire_poll_station()
 	self._master:add_task(self);
 end
 
-function slave:send_poll_station(qoi)
+function slave:send_poll_station(caoa_addr, qoi)
 	if not self._inited then
 		logger.debug('Not initialized....')
 		return nil, 'Not initialized!'
@@ -197,7 +225,8 @@ function slave:send_poll_station(qoi)
 	local asdu = {} -- FC=3 TI=100 COT=6 QOI=20
 	local qoi = ti_map.create_data('qoi', qoi or 20)
 	local cot = asdu_cot:new(types.COT_ACTIVATION) -- 6
-	local caoa = asdu_caoa:new(self._addr)
+	-- local caoa = asdu_caoa:new(self._addr)
+	local caoa = asdu_caoa:new(caoa_addr)
 	local unit = asdu_unit:new(types.C_IC_NA_1, cot, caoa)
 	local obj = asdu_object:new(types.C_IC_NA_1, asdu_addr:new(0), qoi)
 	local asdu = asdu_asdu:new(false, unit, {obj})

@@ -27,12 +27,14 @@ end
 function channel:match_request(req, resp)
 	local addr = resp:ADDR()
 	if addr ~= req:ADDR() then
+		print('xxxxxxxxxx')
 		return false, 'Address not matched'
 	end
 
 	-- Find addr
 	local master = self._slave:find_master(addr:ADDR())
 	if not master then
+		print('xxxxxxxxxx 2222')
 		return false, 'Address not match any master'
 	end
 	return true

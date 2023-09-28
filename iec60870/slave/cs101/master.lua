@@ -19,12 +19,14 @@ local asdu_asdu = require 'iec60870.asdu.init'
 
 local master = base:subclass('LUA_IEC60870_SLAVE_CS101_MASTER')
 
-function master:initialize(device, channel, mode, controlled)
+function master:initialize(addr, device, channel, mode, controlled, target_addr)
 	base.initialize(self)
+	self._addr = assert(addr, 'Link addresss is required')
 	self._device = assert(device, 'Device is required')
 	self._channel = assert(channel, 'Channel is required')
 	self._balance = string.lower(mode) ~= 'unbalance' and true or false
 	self._controlled = controlled
+	self._target_addr = target_addr
 	self._fcb = 1
 	self._retry = 0
 	self._poll_cycle = 0 --- 0 is disable
@@ -62,7 +64,7 @@ function master:make_data_frame(asdu)
 	return self:make_frame(f_ctrl.static.FC_DATA, asdu)
 end
 
-function master:make_frame(fc, acd, asdu, ft_type, prm)
+function master:make_frame(fc, acd, asdu, ft_type, prm, addr)
 	local ftt = ft_type
 	if not ftt then
 		if asdu then
@@ -72,12 +74,13 @@ function master:make_frame(fc, acd, asdu, ft_type, prm)
 		end
 	end
 	local ctrl = self:make_ctrl(fc, acd, prm)
-	local addr = f_addr:new(self._device:ADDR())
+	local addr = addr ~= nil and addr or self._addr
+	local addr = f_addr:new(addr)
 	return ft12:new(ftt, ctrl, addr, asdu)
 end
 
 function master:ADDR()
-	return self._device:ADDR()
+	return self._addr
 end
 
 function master:DIR()
@@ -129,6 +132,48 @@ function master:check_fcb(req)
 		end
 	end
 	return true
+end
+
+function master:req_link_status(addr)
+	logger.info('master '..self._addr..' request link status...', addr)
+	local frame = self:make_frame(f_ctrl.static.FC_LINK, nil, nil, nil, true, addr)
+	local resp, err = self:request_inner(frame)
+	if not resp then
+		return nil, err
+	end
+
+	local ctrl = resp:CTRL()
+	if ctrl:FC() ~= f_ctrl.static.FC_LINK_RESP then
+		return nil, "Invalid response fc:"..ctrl:FC()
+	end
+	return true
+end
+
+function master:req_link_reset(addr)
+	logger.info('master '..self._addr..' request link reset...', addr)
+	self._fcb = 1
+	self._last_poll = 0 -- for poll data
+	self._last_poll =  util.now() - self._poll_cycle
+	local frame = self:make_frame(f_ctrl.static.FC_RST_LINK, nil, nil, nil, true, addr)
+	local resp, err = self:request_inner(frame)
+	if not resp then
+		return nil, err
+	end
+
+	local ctrl = resp:CTRL()
+	if ctrl:FC() ~= f_ctrl.static.FC_S_OK then
+		return nil, "Invalid response fc:"..ctrl:FC()
+	end
+	return true
+end
+
+function master:_balance_start()
+	local r, err = self:req_link_status()
+	if not r then
+		logger.error('master '..self._addr..' request link status failed', err)
+		return nil, err
+	end
+	return self:req_link_reset()
 end
 
 function master:make_init_done_resp(coi)
@@ -379,6 +424,13 @@ function master:on_request(frame)
 		end
 		self._link_reset = true
 		self._device:link_reset(self)
+
+		if self._balance and self._target_addr then
+			util.timeout(200, function()
+				self:_balance_start()
+			end)
+		end
+
 		return self:make_frame(f_ctrl.static.FC_RST_LINK, true)
 	end
 

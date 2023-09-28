@@ -10,9 +10,9 @@ local asdu_asdu = require 'iec60870.asdu.init'
 
 local device = class('LUA_IEC60870_SLAVE_COMMON_DEVICE_UNBALANCE')
 
-function device:initialize(device, addr)
+function device:initialize(device, caoa_addr)
 	self._device = device
-	self._addr = addr
+	self._addr = caoa_addr
 	self._first_class1 = true -- first class1 poll cannot be break by class2 data
 	self._snapshot_done = false
 	self:_reset_snapshot_list()
